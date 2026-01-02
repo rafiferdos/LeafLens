@@ -31,6 +31,7 @@ export default function TabLayout() {
                     },
                     shadowOpacity: 0.1,
                     shadowRadius: 10,
+                    paddingBottom: 0, // Ensure no safe area padding pushes icons up
                 },
                 tabBarBackground: () => (
                     <BlurView
@@ -55,7 +56,9 @@ export default function TabLayout() {
                     </BlurView>
                 ),
                 tabBarItemStyle: {
-                    marginTop: 0, // Center icons vertically since no labels
+                    height: 60, // Match bar height
+                    padding: 0, // Remove padding
+                    margin: 0,
                     justifyContent: 'center',
                     alignItems: 'center',
                 }
