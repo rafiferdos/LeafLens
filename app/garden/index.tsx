@@ -3,9 +3,9 @@ import React, { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { Text } from '@/components/ui/text';
-import { ArrowLeft, Plus, Sprout, Trash2, Camera, X, Check } from 'lucide-react-native';
+import { ArrowLeft, Plus, Sprout, Trash2, Camera, X, Check, Droplets, Sun, Shield, Info } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
-import { NAV_THEME } from '@/lib/theme';
+import { NAV_THEME, THEME } from '@/lib/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,6 +19,15 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 
 interface GardenPlant {
@@ -27,12 +36,21 @@ interface GardenPlant {
     type: string;
     dateAdded: string;
     imageUri?: string;
+    wateringFrequency?: string;
+    sunlight?: string;
+    difficulty?: string;
+    petSafe?: boolean;
+    location?: string;
+    notes?: string;
+    soilType?: string;
+    potSize?: string;
 }
 
 export default function MyGardenScreen() {
     const router = useRouter();
     const { colorScheme } = useColorScheme();
     const theme = NAV_THEME[colorScheme ?? 'light'];
+    const colors = THEME[colorScheme ?? 'light'];
     const [plants, setPlants] = useState<GardenPlant[]>([]);
     const [animationKey, setAnimationKey] = useState(0);
     const [plantToDelete, setPlantToDelete] = useState<string | null>(null);
@@ -42,6 +60,17 @@ export default function MyGardenScreen() {
     const [newPlantName, setNewPlantName] = useState('');
     const [newPlantType, setNewPlantType] = useState('');
     const [newPlantImage, setNewPlantImage] = useState<string | null>(null);
+
+    // New Properties State
+    const [wateringFrequency, setWateringFrequency] = useState<GardenPlant['wateringFrequency']>('Weekly');
+    const [sunlight, setSunlight] = useState<GardenPlant['sunlight']>('Partial');
+    const [difficulty, setDifficulty] = useState<GardenPlant['difficulty']>('Easy');
+    const [petSafe, setPetSafe] = useState(true);
+    const [location, setLocation] = useState('');
+    const [notes, setNotes] = useState('');
+    const [soilType, setSoilType] = useState('');
+    const [potSize, setPotSize] = useState('');
+
 
     const loadGarden = async () => {
         try {
@@ -78,7 +107,15 @@ export default function MyGardenScreen() {
             name: newPlantName,
             type: newPlantType || 'Indoor Plant',
             dateAdded: new Date().toISOString(),
-            imageUri: newPlantImage || undefined
+            imageUri: newPlantImage || undefined,
+            wateringFrequency,
+            sunlight,
+            difficulty,
+            petSafe,
+            location,
+            notes,
+            soilType,
+            potSize,
         };
 
         const updatedPlants = [newPlant, ...plants];
@@ -89,6 +126,14 @@ export default function MyGardenScreen() {
         setNewPlantName('');
         setNewPlantType('');
         setNewPlantImage(null);
+        setWateringFrequency('Weekly');
+        setSunlight('Partial');
+        setDifficulty('Easy');
+        setPetSafe(true);
+        setLocation('');
+        setNotes('');
+        setSoilType('');
+        setPotSize('');
         setIsModalVisible(false);
     };
 
@@ -208,49 +253,178 @@ export default function MyGardenScreen() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <View className="gap-6 py-4">
-                        <View className="items-center">
-                            <TouchableOpacity
-                                onPress={pickImage}
-                                className="w-32 h-32 rounded-full bg-secondary/50 border-2 border-dashed border-border items-center justify-center overflow-hidden shadow-sm"
-                            >
-                                {newPlantImage ? (
-                                    <Image source={{ uri: newPlantImage }} className="w-full h-full" resizeMode="cover" />
-                                ) : (
-                                    <View className="items-center gap-2">
-                                        <Camera size={32} color={theme.colors.mutedForeground} />
-                                        <Text className="text-xs text-muted-foreground font-medium">Add Photo</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                        </View>
+                    <ScrollView className="max-h-[600px]" showsVerticalScrollIndicator={false}>
+                        <View className="gap-6 py-4">
+                            {/* Image & Basic Info */}
+                            <View className="items-center mb-2">
+                                <TouchableOpacity
+                                    onPress={pickImage}
+                                    className="w-28 h-28 rounded-full bg-secondary/50 border-4 border-background shadow-sm items-center justify-center overflow-hidden mb-4"
+                                    style={{ elevation: 5 }}
+                                >
+                                    {newPlantImage ? (
+                                        <Image source={{ uri: newPlantImage }} className="w-full h-full" resizeMode="cover" />
+                                    ) : (
+                                        <View className="items-center gap-2">
+                                            <Camera size={28} color={colors.mutedForeground} />
+                                            <Text className="text-[10px] text-muted-foreground font-medium">Add Photo</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
 
-                        <View className="gap-4">
-                            <View className="gap-1.5">
-                                <Text className="text-sm font-medium text-foreground ml-1">Plant Name</Text>
+                                <View className="w-full flex-row gap-4 mb-2">
+                                    <View className="flex-1 gap-1.5">
+                                        <Text className="text-xs font-bold text-muted-foreground ml-1 uppercase">Name</Text>
+                                        <TextInput
+                                            className="w-full bg-secondary/30 p-3 rounded-xl border border-border text-foreground font-bold"
+                                            placeholder="Mr. Monstera"
+                                            placeholderTextColor={colors.mutedForeground}
+                                            value={newPlantName}
+                                            onChangeText={setNewPlantName}
+                                        />
+                                    </View>
+                                    <View className="flex-1 gap-1.5">
+                                        <Text className="text-xs font-bold text-muted-foreground ml-1 uppercase">Type</Text>
+                                        <Select value={{ value: newPlantType, label: newPlantType }} onValueChange={(option) => {
+                                            if (option) setNewPlantType(option.value);
+                                        }}>
+                                            <SelectTrigger className="w-full bg-secondary/30 border-border rounded-xl">
+                                                <SelectValue
+                                                    className="text-foreground text-sm native:text-lg"
+                                                    placeholder="Select Type"
+                                                />
+                                            </SelectTrigger>
+                                            <SelectContent className="w-[200px]">
+                                                <SelectGroup>
+                                                    <SelectLabel>Plant Types</SelectLabel>
+                                                    {['Indoor', 'Outdoor', 'Succulent', 'Vegetable', 'Herb', 'Flower', 'Tree', 'Cactus', 'Fern', 'Orchid'].map((type) => (
+                                                        <SelectItem key={type} label={type} value={type}>
+                                                            {type}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </View>
+                                </View>
+                            </View>
+
+                            {/* Divider */}
+                            <View className="h-[1px] bg-border/50 w-full" />
+
+                            {/* Care Requirements */}
+                            <View className="gap-3">
+                                <View className="flex-row items-center gap-2 mb-1">
+                                    <Droplets size={16} color={colors.primary} />
+                                    <Text className="text-sm font-bold text-foreground">Watering Frequency</Text>
+                                </View>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+                                    {['Daily', 'Weekly', 'Bi-weekly', 'Monthly'].map((freq) => (
+                                        <TouchableOpacity
+                                            key={freq}
+                                            onPress={() => setWateringFrequency(freq as any)}
+                                            className={`px-4 py-2 rounded-full border ${wateringFrequency === freq
+                                                ? 'bg-primary border-primary'
+                                                : 'bg-transparent border-border'
+                                                } mr-2`}
+                                        >
+                                            <Text className={`text-xs font-medium ${wateringFrequency === freq ? 'text-white' : 'text-muted-foreground'
+                                                }`}>{freq}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </ScrollView>
+                            </View>
+
+                            <View className="gap-3">
+                                <View className="flex-row items-center gap-2 mb-1">
+                                    <Sun size={16} color="orange" />
+                                    <Text className="text-sm font-bold text-foreground">Sunlight Needs</Text>
+                                </View>
+                                <View className="flex-row gap-2">
+                                    {['Low', 'Partial', 'Direct'].map((level) => (
+                                        <TouchableOpacity
+                                            key={level}
+                                            onPress={() => setSunlight(level as any)}
+                                            className={`flex-1 py-2 rounded-xl border items-center justify-center ${sunlight === level
+                                                ? 'bg-orange-100 dark:bg-orange-900/30 border-orange-500'
+                                                : 'bg-transparent border-border'
+                                                }`}
+                                        >
+                                            <Text className={`text-xs font-bold ${sunlight === level ? 'text-orange-600 dark:text-orange-400' : 'text-muted-foreground'
+                                                }`}>{level}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+
+                            <View className="flex-row gap-4">
+                                <View className="flex-1 gap-2">
+                                    <Text className="text-xs font-bold text-muted-foreground uppercase ml-1">Difficulty</Text>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                        {['Easy', 'Medium', 'Hard'].map((diff) => (
+                                            <TouchableOpacity
+                                                key={diff}
+                                                onPress={() => setDifficulty(diff as any)}
+                                                className={`px-3 py-2 rounded-lg border ${difficulty === diff
+                                                    ? 'bg-secondary border-foreground/20'
+                                                    : 'bg-transparent border-border'
+                                                    } mr-2`}
+                                            >
+                                                <Text className={`text-xs ${difficulty === diff ? 'font-bold text-foreground' : 'text-muted-foreground'
+                                                    }`}>{diff}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                </View>
+                                <View className="justify-end pb-1">
+                                    <TouchableOpacity
+                                        onPress={() => setPetSafe(!petSafe)}
+                                        className={`flex-row items-center gap-2 px-3 py-2 rounded-lg border ${petSafe ? 'bg-green-100 dark:bg-green-900/30 border-green-500' : 'bg-transparent border-border'
+                                            }`}
+                                    >
+                                        <Shield size={14} color={petSafe ? colors.primary : colors.mutedForeground} />
+                                        <Text className={`text-xs ${petSafe ? 'text-green-700 dark:text-green-400 font-bold' : 'text-muted-foreground'}`}>
+                                            Pet Safe
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            {/* Detailed Info */}
+                            <View className="gap-3 mt-2">
+                                <Text className="text-sm font-bold text-foreground flex-row items-center gap-2">
+                                    <Info size={14} className="mr-2" color={colors.mutedForeground} />
+                                    Details
+                                </Text>
+                                <View className="flex-row gap-3">
+                                    <TextInput
+                                        className="flex-1 bg-secondary/30 p-3 rounded-xl border border-border text-foreground text-xs"
+                                        placeholder="Living Room (Location)"
+                                        placeholderTextColor={colors.mutedForeground}
+                                        value={location}
+                                        onChangeText={setLocation}
+                                    />
+                                    <TextInput
+                                        className="flex-1 bg-secondary/30 p-3 rounded-xl border border-border text-foreground text-xs"
+                                        placeholder="Loam/Peat (Soil)"
+                                        placeholderTextColor={colors.mutedForeground}
+                                        value={soilType}
+                                        onChangeText={setSoilType}
+                                    />
+                                </View>
                                 <TextInput
-                                    className="w-full bg-secondary/30 p-3.5 rounded-xl border border-border text-foreground font-semibold"
-                                    placeholder="e.g. Mr. Monstera"
-                                    placeholderTextColor={theme.colors.mutedForeground}
-                                    value={newPlantName}
-                                    onChangeText={setNewPlantName}
-                                    returnKeyType="next"
+                                    className="bg-secondary/30 p-3 rounded-xl border border-border text-foreground text-xs h-24"
+                                    placeholder="Add notes about care history, distinct markers, or sentimental value..."
+                                    placeholderTextColor={colors.mutedForeground}
+                                    multiline
+                                    textAlignVertical="top"
+                                    value={notes}
+                                    onChangeText={setNotes}
                                 />
                             </View>
-                            <View className="gap-1.5">
-                                <Text className="text-sm font-medium text-foreground ml-1">Plant Type</Text>
-                                <TextInput
-                                    className="w-full bg-secondary/30 p-3.5 rounded-xl border border-border text-foreground"
-                                    placeholder="e.g. Indoor, Succulent"
-                                    placeholderTextColor={theme.colors.mutedForeground}
-                                    value={newPlantType}
-                                    onChangeText={setNewPlantType}
-                                    returnKeyType="done"
-                                    onSubmitEditing={handleSavePlant}
-                                />
-                            </View>
+
                         </View>
-                    </View>
+                    </ScrollView>
 
                     <DialogFooter>
                         <Button onPress={handleSavePlant} className="w-full">
