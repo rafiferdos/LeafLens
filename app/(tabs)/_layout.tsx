@@ -56,11 +56,20 @@ export default function TabLayout() {
                     </BlurView>
                 ),
                 tabBarItemStyle: {
-                    height: 60, // Match bar height
-                    padding: 0, // Remove padding
+                    top: 0,
+                    height: 60,
+                    padding: 0,
                     margin: 0,
                     justifyContent: 'center',
                     alignItems: 'center',
+                    flex: 1, // Ensure items share space equally
+                },
+                headerShown: false, // Ensure header is hidden globally if not already
+                tabBarIconStyle: {
+                    marginTop: 0,
+                    marginBottom: 0,
+                    height: 36, // Match your icon view height
+                    width: 50,  // Match your icon view width
                 }
             }}
         >
