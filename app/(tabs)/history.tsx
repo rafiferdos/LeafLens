@@ -31,7 +31,23 @@ export default function HistoryScreen() {
         }, [])
     );
 
-    // ... (clearHistory function)
+    const clearHistory = async () => {
+        Alert.alert(
+            "Clear History",
+            "Are you sure you want to delete all scan history?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        await AsyncStorage.removeItem('scanHistory');
+                        setHistory([]);
+                    }
+                }
+            ]
+        );
+    };
 
     return (
         <SafeAreaView className="flex-1 bg-background">

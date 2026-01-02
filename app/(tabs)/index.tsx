@@ -302,7 +302,7 @@ export default function ScanScreen() {
 
                     <Animated.View entering={FadeInDown.delay(300).duration(600)} className="flex-1">
                         <TouchableOpacity
-                            onPress={() => router.push('/garden')}
+                            onPress={() => router.push('/garden' as any)}
                             className="bg-secondary/30 p-4 rounded-2xl border border-secondary items-center justify-center gap-3 h-32"
                         >
                             <View className="w-12 h-12 rounded-full bg-background items-center justify-center shadow-sm">
