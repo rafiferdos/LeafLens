@@ -276,7 +276,7 @@ export default function MyGardenScreen() {
                                     <View className="flex-1 gap-1.5">
                                         <Text className="text-xs font-bold text-muted-foreground ml-1 uppercase">Name</Text>
                                         <TextInput
-                                            className="w-full bg-secondary/30 p-3 rounded-xl border border-border text-foreground font-bold"
+                                            className="w-full h-12 bg-secondary/30 px-3 rounded-xl border border-border text-foreground font-bold"
                                             placeholder="Mr. Monstera"
                                             placeholderTextColor={colors.mutedForeground}
                                             value={newPlantName}
@@ -288,7 +288,7 @@ export default function MyGardenScreen() {
                                         <Select value={{ value: newPlantType, label: newPlantType }} onValueChange={(option) => {
                                             if (option) setNewPlantType(option.value);
                                         }}>
-                                            <SelectTrigger className="w-full bg-secondary/30 border-border rounded-xl">
+                                            <SelectTrigger className="w-full h-12 bg-secondary/30 px-3 border-border rounded-xl justify-center">
                                                 <SelectValue
                                                     className="text-foreground text-sm native:text-lg"
                                                     placeholder="Select Type"
@@ -357,7 +357,7 @@ export default function MyGardenScreen() {
                                 </View>
                             </View>
 
-                            <View className="flex-row gap-4">
+                            <View className="flex-row gap-4 items-end">
                                 <View className="flex-1 gap-2">
                                     <Text className="text-xs font-bold text-muted-foreground uppercase ml-1">Difficulty</Text>
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -376,7 +376,7 @@ export default function MyGardenScreen() {
                                         ))}
                                     </ScrollView>
                                 </View>
-                                <View className="justify-end pb-1">
+                                <View>
                                     <TouchableOpacity
                                         onPress={() => setPetSafe(!petSafe)}
                                         className={`flex-row items-center gap-2 px-3 py-2 rounded-lg border ${petSafe ? 'bg-green-100 dark:bg-green-900/30 border-green-500' : 'bg-transparent border-border'
