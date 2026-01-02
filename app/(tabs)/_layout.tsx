@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Leaf, History, Info } from 'lucide-react-native';
+import { Leaf, History, Info, Newspaper } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { View, Platform } from 'react-native';
 import { useColorScheme } from 'nativewind';
@@ -107,6 +107,25 @@ export default function TabLayout() {
                             height: 36
                         }}>
                             <History color={color} size={24} />
+                        </View>
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="news"
+                options={{
+                    title: 'News',
+                    tabBarIcon: ({ color, focused }) => (
+                        <View style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: focused ? (colorScheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : 'transparent',
+                            padding: 8,
+                            borderRadius: 20,
+                            width: 50,
+                            height: 36
+                        }}>
+                            <Newspaper color={color} size={24} />
                         </View>
                     ),
                 }}
