@@ -310,7 +310,7 @@ export default function MyGardenScreen() {
                             </View>
 
                             {/* Divider */}
-                            <View className="h-[1px] bg-border/50 w-full" />
+                            <View className="h-px bg-border/50 w-full" />
 
                             {/* Care Requirements */}
                             <View className="gap-3">

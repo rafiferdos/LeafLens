@@ -33,7 +33,7 @@ function DialogOverlay({
         className={cn(
           'absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center p-2',
           Platform.select({
-            web: 'animate-in fade-in-0 fixed cursor-default [&>*]:cursor-auto',
+            web: 'animate-in fade-in-0 fixed cursor-default *:cursor-auto',
           }),
           className
         )}
