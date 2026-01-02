@@ -1,64 +1,89 @@
 import React from 'react';
-import { View, Image, ScrollView, Linking } from 'react-native';
+import { View, Image, ScrollView, Linking, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-import { Globe, Github, Info } from 'lucide-react-native';
+import { Leaf, Heart } from 'lucide-react-native';
+import { NAV_THEME, THEME } from '@/lib/theme';
+import { useColorScheme } from 'nativewind';
+
+const RafiImage = require('../../assets/images/rafi.jpg');
+const MimImage = require('../../assets/images/mim.jpg');
 
 export default function AboutScreen() {
+    const { colorScheme } = useColorScheme();
+    const theme = NAV_THEME[colorScheme ?? 'light'];
+    const isDark = colorScheme === 'dark';
+
     return (
         <SafeAreaView className="flex-1 bg-background">
-            <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 60 }}>
-
-                <View className="items-center mb-10 mt-4">
-                    <View className="bg-primary/10 p-4 rounded-full mb-4">
-                        <Info size={40} className="text-primary" color="#16a34a" />
+            <ScrollView
+                contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Header Section */}
+                <View className="items-center mt-8 mb-12">
+                    <View className="bg-primary/10 p-5 rounded-3xl mb-6 shadow-sm">
+                        <Leaf size={48} color={theme.colors.primary} />
                     </View>
-                    <Text className="text-3xl font-bold text-center">LeafLens</Text>
-                    <Text className="text-muted-foreground mt-2">v1.0.0 (Native)</Text>
-                </View>
-
-                <View className="bg-card border border-border rounded-xl p-6 mb-8">
-                    <Text className="text-lg font-semibold mb-2">About The Project</Text>
-                    <Text className="text-muted-foreground leading-6">
-                        LeafLens is an advanced AI-powered application designed to detect plant diseases from leaf images.
-                        Using state-of-the-art computer vision models, it helps farmers and gardeners identify issues early
-                        and take preventative action.
+                    <Text className="text-4xl font-bold tracking-tight text-center mb-2">
+                        LeafLens
+                    </Text>
+                    <Text className="text-muted-foreground text-center text-lg max-w-[280px]">
+                        Nurturing nature with the power of vision.
                     </Text>
                 </View>
 
-                <Text className="text-lg font-semibold mb-4">Developers</Text>
+                {/* Mission Section */}
+                <View className="mb-12">
+                    <Text className="text-xl font-semibold mb-3">Our Mission</Text>
+                    <Text className="text-muted-foreground leading-7 text-lg">
+                        We believe that every plant deserves to thrive. LeafLens empowers you to understand your green companions better, bringing expert botanical knowledge to your fingertips instantly.
+                    </Text>
+                </View>
 
-                <View className="bg-card border border-border rounded-xl overflow-hidden mb-6">
-                    <View className="h-24 bg-primary/20 items-center justify-center">
-                        <Text className="font-bold text-primary text-xl">Rafi Ferdos</Text>
-                    </View>
-                    <View className="p-4 items-center">
-                        <Text className="text-center text-muted-foreground mb-4">
-                            Lead Developer & Creator. Passionate about AI solutions.
-                        </Text>
-                        <View className="flex-row gap-4">
-                            <Button variant="outline" size="sm" onPress={() => Linking.openURL('https://github.com/rafiferdos')}>
-                                <Github size={16} className="text-foreground mr-2" color="black" />
-                                <Text>GitHub</Text>
-                            </Button>
-                            <Button variant="outline" size="sm" onPress={() => Linking.openURL('https://rafiferdos.com')}>
-                                <Globe size={16} className="text-foreground mr-2" color="black" />
-                                <Text>Website</Text>
-                            </Button>
+                {/* The Team Section */}
+                <View className="mb-8">
+                    <Text className="text-xl font-semibold mb-6 flex-row items-center">
+                        Built with <Heart size={20} color={isDark ? '#f472b6' : '#ec4899'} fill={isDark ? '#f472b6' : '#ec4899'} /> by
+                    </Text>
+
+                    <View className="gap-6">
+                        {/* Rafi's Card */}
+                        <View className="bg-card border border-border/50 rounded-3xl p-5 shadow-sm flex-row items-center gap-4">
+                            <Image
+                                source={RafiImage}
+                                className="w-20 h-20 rounded-2xl bg-muted"
+                                resizeMode="cover"
+                            />
+                            <View className="flex-1">
+                                <Text className="text-xl font-bold mb-1">Rafi Ferdos</Text>
+                                <Text className="text-muted-foreground mb-2">Creator & Engineer</Text>
+                                <TouchableOpacity onPress={() => Linking.openURL('https://rafiferdos.vercel.app')}>
+                                    <Text className="text-primary font-medium">Visit Website &rarr;</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Mim's Card */}
+                        <View className="bg-card border border-border/50 rounded-3xl p-5 shadow-sm flex-row items-center gap-4">
+                            <Image
+                                source={MimImage}
+                                className="w-20 h-20 rounded-2xl bg-muted"
+                                resizeMode="cover"
+                            />
+                            <View className="flex-1">
+                                <Text className="text-xl font-bold mb-1">Siam Akter Mim</Text>
+                                <Text className="text-muted-foreground mb-2">Researcher & Partner</Text>
+                                <Text className="text-xs text-muted-foreground/80 italic">Making things beautiful</Text>
+                            </View>
                         </View>
                     </View>
                 </View>
 
-                <View className="bg-card border border-border rounded-xl overflow-hidden">
-                    <View className="h-24 bg-muted items-center justify-center">
-                        <Text className="font-bold text-foreground text-xl">Siam Akter Mim</Text>
-                    </View>
-                    <View className="p-4 items-center">
-                        <Text className="text-center text-muted-foreground">
-                            Team Member & Researcher.
-                        </Text>
-                    </View>
+                <View className="items-center mt-4">
+                    <Text className="text-sm text-muted-foreground/60">
+                        Version 1.0.0 (Native)
+                    </Text>
                 </View>
 
             </ScrollView>
