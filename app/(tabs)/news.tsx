@@ -13,25 +13,45 @@ export default function NewsScreen() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
     const router = useRouter();
     const { colorScheme } = useColorScheme();
     const theme = NAV_THEME[colorScheme ?? 'light'];
 
-    const loadNews = async () => {
-        setLoading(true);
-        const data = await fetchEggplantNews();
-        setArticles(data);
+    const loadNews = async (pageNum: number, shouldRefresh: boolean = false) => {
+        if (pageNum === 1) setLoading(true);
+
+        // Pass page and limit (10)
+        const newArticles = await fetchEggplantNews(pageNum, 10);
+
+        if (shouldRefresh) {
+            setArticles(newArticles);
+        } else {
+            setArticles(prev => [...prev, ...newArticles]);
+        }
+
+        setHasMore(newArticles.length === 10); // Assume more if we got a full page
         setLoading(false);
     };
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await loadNews();
+        setPage(1);
+        await loadNews(1, true);
         setRefreshing(false);
     };
 
+    const onLoadMore = () => {
+        if (!loading && hasMore) {
+            const nextPage = page + 1;
+            setPage(nextPage);
+            loadNews(nextPage);
+        }
+    };
+
     useEffect(() => {
-        loadNews();
+        loadNews(1, true);
     }, []);
 
     const renderItem = ({ item, index }: { item: Article; index: number }) => (
@@ -91,9 +111,25 @@ export default function NewsScreen() {
                 <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-3xl font-bold text-foreground">
                     Eggplant News
                 </Text>
-                <Text className="text-muted-foreground text-base">
+                <Text className="text-muted-foreground text-base mb-4">
                     Latest updates from the purple world
                 </Text>
+
+                {/* View Options */}
+                <View className="flex-row gap-2">
+                    <TouchableOpacity
+                        className="bg-primary px-4 py-2 rounded-full"
+                        onPress={() => { }} // Could hook up to sort logic later
+                    >
+                        <Text className="text-primary-foreground font-bold text-xs">Latest</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        className="bg-muted px-4 py-2 rounded-full border border-border/50"
+                        onPress={() => { }}
+                    >
+                        <Text className="text-muted-foreground font-medium text-xs">Popular</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <FlatList
@@ -104,6 +140,15 @@ export default function NewsScreen() {
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
+                }
+                onEndReached={onLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                    loading && articles.length > 0 ? (
+                        <View className="py-4">
+                            <Text className="text-center text-muted-foreground text-sm">Loading more...</Text>
+                        </View>
+                    ) : null
                 }
                 ListEmptyComponent={
                     !loading ? (

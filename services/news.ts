@@ -117,6 +117,15 @@ const fetchEggplantNewsInternal = async (): Promise<Article[]> => {
             // We will leave description empty or try to clean it.
             const descriptionMatch = itemXml.match(/<description>([\s\S]*?)<\/description>/);
 
+            // Try to find an image in the description HTML
+            let extractedImage = null;
+            if (descriptionMatch && descriptionMatch[1]) {
+                const imgMatch = descriptionMatch[1].match(/src="(.*?)"/);
+                if (imgMatch) {
+                    extractedImage = imgMatch[1];
+                }
+            }
+
             let id = guidMatch ? guidMatch[1] : Math.random().toString();
             const link = linkMatch ? linkMatch[1] : '';
             const title = titleMatch ? titleMatch[1] : 'No Title';
@@ -124,16 +133,41 @@ const fetchEggplantNewsInternal = async (): Promise<Article[]> => {
             const sourceName = sourceMatch ? sourceMatch[1] : 'News';
 
             // Attempt to simulate a description from title if missing (Google RSS implies title is the news)
-            const description = descriptionMatch ? descriptionMatch[1].replace(/<[^>]+>/g, '') : title;
+            // Google News descriptions usually contain an anchor tag like <a href="...">text</a>.
+            // We want to extract the cleaned text, or if it's just a link, maybe show a snippet.
+            let cleanDescription = title;
+            if (descriptionMatch && descriptionMatch[1]) {
+                // 1. Decode generic entities manually (React Native doesn't have a full DOM parser or 'he' lib by default easily)
+                let rawDesc = descriptionMatch[1]
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'");
+
+                // 2. Remove all HTML tags to leave just text
+                rawDesc = rawDesc.replace(/<[^>]+>/g, '');
+
+                // 3. Google News specific cleanup: "Google News" often incorrectly duplicates the source or just shows "View full coverage"
+                // If the result is very short or looks like a URL, prefer the title or empty.
+                if (rawDesc.trim().length > 10 && !rawDesc.includes("http")) {
+                    cleanDescription = rawDesc.trim();
+                }
+            }
+
+            // Fallback: If description is still "messy" (starts with http), default to empty or title
+            if (cleanDescription.startsWith("http") || cleanDescription.startsWith("&")) {
+                cleanDescription = "Click to read full article";
+            }
 
             return {
                 id,
                 source: { id: null, name: sourceName },
-                author: sourceName, // Google RSS doesn't give author usually
+                author: sourceName,
                 title,
-                description,
+                description: cleanDescription,
                 url: link,
-                urlToImage: null, // RSS doesn't provide standard images
+                urlToImage: extractedImage,
                 publishedAt: date,
                 content: null
             };
@@ -172,9 +206,14 @@ let cachedArticles: Article[] = [];
 
 // Wrap the fetch to update cache
 const originalFetch = fetchEggplantNewsInternal;
-export const fetchEggplantNewsWithCache = async (): Promise<Article[]> => {
-    const articles = await originalFetch();
-    cachedArticles = [...articles];
+export const fetchEggplantNewsWithCache = async (page: number = 1, limit: number = 10): Promise<Article[]> => {
+    const articles = await originalFetch(page, limit);
+    // Add new items to cache for details view, avoiding duplicates
+    articles.forEach(article => {
+        if (!cachedArticles.find(a => a.id === article.id)) {
+            cachedArticles.push(article);
+        }
+    });
     return articles;
 };
 
