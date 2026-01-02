@@ -48,7 +48,7 @@ export default function RootLayout() {
                  Actually, simpler: just show Lottie until it finishes.
              */}
         <LottieView
-          source={require('../assets/animations/walking_pothos.lottie')}
+          source={require('../assets/animations/walking_pothos.json')}
           autoPlay
           loop={false}
           style={{ width: 200, height: 200 }}
