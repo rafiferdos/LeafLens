@@ -25,7 +25,7 @@ export default function AboutScreen() {
                     <View className="bg-primary/10 p-5 rounded-3xl mb-6 shadow-sm">
                         <Leaf size={48} color={theme.colors.primary} />
                     </View>
-                    <Text className="text-4xl font-bold tracking-tight text-center mb-2">
+                    <Text className="text-4xl font-bold tracking-tight text-center mb-2 font-heading">
                         LeafLens
                     </Text>
                     <Text className="text-muted-foreground text-center text-lg max-w-[280px]">

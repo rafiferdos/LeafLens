@@ -113,7 +113,7 @@ export default function ScanScreen() {
                             />
                         </View>
 
-                        <Text className="text-4xl font-extrabold tracking-tight text-center mb-3">
+                        <Text className="text-4xl font-extrabold tracking-tight text-center mb-3 font-heading">
                             LeafLens
                         </Text>
                         <Text className="text-muted-foreground text-center text-lg max-w-[280px] leading-relaxed mb-12">
