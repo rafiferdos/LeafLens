@@ -12,49 +12,52 @@ export default function TabLayout() {
     return (
         <Tabs
             screenOptions={{
-                headerShown: false,
+                tabBarShowLabel: false, // Just icons
                 tabBarActiveTintColor: theme.colors.primary,
                 tabBarStyle: {
                     position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
+                    bottom: 20, // Floating effect
+                    left: 20,
+                    right: 20,
                     elevation: 0,
                     borderTopWidth: 0,
-                    height: 85, // Taller to look distinct
-                    backgroundColor: 'transparent', // Important for BlurView
-                    paddingTop: 10,
+                    height: 60, // Compact height
+                    backgroundColor: 'transparent',
+                    borderRadius: 35, // Fully rounded for liquid/pill look
+                    shadowColor: "#000",
+                    shadowOffset: {
+                        width: 0,
+                        height: 4,
+                    },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 10,
                 },
                 tabBarBackground: () => (
                     <BlurView
-                        intensity={80}
+                        intensity={20} // Less blur as requested
                         style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
+                            flex: 1,
                             overflow: 'hidden',
-                            // Fallback for Android if native blur isn't enabled
-                            backgroundColor: Platform.OS === 'android' ? (colorScheme === 'dark' ? 'rgba(10,10,10,0.95)' : 'rgba(255,255,255,0.95)') : 'transparent',
+                            borderRadius: 35, // Match tab bar
+                            backgroundColor: 'transparent',
                         }}
-                        tint={colorScheme === 'dark' ? 'dark' : 'light'}
+                        tint={colorScheme === 'dark' ? 'systemThinMaterialDark' : 'systemThinMaterialLight'} // Thin material for glass effect
+                        experimentalBlurMethod='dimezisBlurView'
                     >
-                        {/* Extra overlay for that "liquid" glass sheen */}
+                        {/* Liquid Glass Sheen */}
                         <View style={{
                             flex: 1,
-                            backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)'
+                            backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.2)', // Slightly milky
+                            borderColor: 'rgba(255,255,255,0.2)',
+                            borderWidth: 1,
+                            borderRadius: 35,
                         }} />
                     </BlurView>
                 ),
-                tabBarLabelStyle: {
-                    fontFamily: 'Kablammo_400Regular', // Use the fun font for labels too? Or maybe keep it clean. Let's keep it clean but maybe slightly bolder.
-                    fontSize: 12,
-                    fontWeight: '600',
-                    marginBottom: 5,
-                },
                 tabBarItemStyle: {
-                    // Add some spacing
+                    marginTop: 0, // Center icons vertically since no labels
+                    justifyContent: 'center',
+                    alignItems: 'center',
                 }
             }}
         >

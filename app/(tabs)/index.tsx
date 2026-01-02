@@ -135,7 +135,7 @@ export default function ScanScreen() {
                         >
                             <ArrowRight size={24} className="rotate-180 text-foreground" color={theme.colors.text} />
                         </TouchableOpacity>
-                        <Text className="text-xl font-bold">Analysis</Text>
+                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold">Analysis</Text>
                         <View style={{ width: 40 }} />
                     </View>
 
@@ -195,7 +195,7 @@ export default function ScanScreen() {
                                         </Text>
                                     </View>
 
-                                    <Text className="text-3xl font-extrabold capitalize mb-2 text-foreground">
+                                    <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-3xl font-extrabold capitalize mb-2 text-foreground">
                                         {result.class.replace(/([A-Z])/g, ' $1').trim()}
                                     </Text>
 
@@ -239,7 +239,7 @@ export default function ScanScreen() {
                         </View>
                         <View>
                             <Text className="text-sm text-muted-foreground">Welcome back</Text>
-                            <Text className="text-xl font-bold text-foreground">Plant Parent</Text>
+                            <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">Plant Parent</Text>
                         </View>
                     </Animated.View>
                 </View>
@@ -248,7 +248,7 @@ export default function ScanScreen() {
                 <View className="px-6 mt-4">
                     <Animated.View
                         entering={FadeInDown.delay(100).duration(600).springify()}
-                        className="bg-primary rounded-3xl p-6 relative overflow-hidden h-48 justify-between shadow-lg shadow-primary/20"
+                        className="bg-primary rounded-3xl p-6 relative overflow-hidden h-auto min-h-[192px] justify-between shadow-lg shadow-primary/20"
                     >
                         {/* decorative background circles */}
                         <View className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full" />
@@ -258,7 +258,7 @@ export default function ScanScreen() {
                             <View className="bg-white/20 self-start px-3 py-1 rounded-full mb-3">
                                 <Text className="text-white text-xs font-bold">AI Powered</Text>
                             </View>
-                            <Text className="text-white text-2xl font-bold w-2/3 leading-tight">
+                            <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-white text-2xl font-bold w-2/3 leading-tight">
                                 Diagnose your plant's health instantly
                             </Text>
                         </View>
@@ -303,7 +303,7 @@ export default function ScanScreen() {
                 {recentScan && (
                     <Animated.View entering={FadeInDown.delay(400)} className="px-6 mt-8">
                         <View className="flex-row items-center justify-between mb-4">
-                            <Text className="text-lg font-bold">Recent Scan</Text>
+                            <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-lg font-bold">Recent Scan</Text>
                             <TouchableOpacity>
                                 <Text className="text-primary text-sm">View All</Text>
                             </TouchableOpacity>
@@ -327,7 +327,7 @@ export default function ScanScreen() {
 
                 {/* Plant Care Tips - "Comfort" Content */}
                 <Animated.View entering={FadeInDown.delay(500)} className="px-6 mt-8 mb-6">
-                    <Text className="text-lg font-bold mb-4">Plant Care Essentials</Text>
+                    <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-lg font-bold mb-4">Plant Care Essentials</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-6 px-6 gap-4">
                         <View className="w-40 bg-orange-50 dark:bg-orange-950/20 p-4 rounded-2xl border border-orange-100 dark:border-orange-900/40 mr-4">
                             <View className="bg-orange-100 dark:bg-orange-900/50 w-10 h-10 rounded-full items-center justify-center mb-3">
