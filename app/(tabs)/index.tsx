@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-import { View, Image, ScrollView, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Image, ScrollView, ActivityIndicator, Alert, Platform, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Image as ImageIcon, ScanLine, Leaf, RefreshCcw } from 'lucide-react-native';
+import { Camera, Image as ImageIcon, ScanLine, Leaf, RefreshCcw, ArrowRight } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
+import { useColorScheme } from 'nativewind';
+import { NAV_THEME } from '@/lib/theme';
 
 // Backend URL - Adjust 10.0.2.2 for Android Emulator, localhost for iOS Simulator
 const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+const LogoImage = require('../../assets/images/logo.png');
 
 export default function ScanScreen() {
+    const { colorScheme } = useColorScheme();
+    const theme = NAV_THEME[colorScheme ?? 'light'];
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [result, setResult] = useState<any>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -51,6 +56,8 @@ export default function ScanScreen() {
                 uri: selectedImage,
                 name: 'photo.jpg',
                 type: 'image/jpeg',
+                // @ts-ignore
+                uri: Platform.OS === 'android' ? selectedImage : selectedImage.replace('file://', ''),
             } as any);
 
             const response = await fetch(`${API_URL}/predict`, {
@@ -85,7 +92,7 @@ export default function ScanScreen() {
                 id: Date.now().toString(),
                 timestamp: new Date().toISOString(),
                 result,
-                imageUri // Saving URI only - might need base64 for persistence across sessions if tmp file is cleared, but for now URI is standard for RN
+                imageUri
             };
             await AsyncStorage.setItem('scanHistory', JSON.stringify([newItem, ...parsedHistory]));
         } catch (e) {
@@ -95,103 +102,117 @@ export default function ScanScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-background">
-            <ScrollView contentContainerStyle={{ paddingBottom: 40 }} className="px-6 py-8">
-
-                <View className="mb-8 items-center">
-                    <View className="bg-primary/10 p-3 rounded-full mb-3">
-                        <Leaf size={32} className="text-primary" color="#16a34a" />
-                    </View>
-                    <Text className="text-3xl font-bold tracking-tight text-center">LeafLens</Text>
-                    <Text className="text-muted-foreground mt-2 text-center text-base">
-                        AI-powered plant disease detection.
-                    </Text>
-                </View>
-
-                <View className="bg-muted/30 border border-border rounded-3xl h-80 w-full items-center justify-center overflow-hidden mb-8 shadow-sm">
-                    {selectedImage ? (
-                        <Image
-                            source={{ uri: selectedImage }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                        />
-                    ) : (
-                        <View className="items-center opacity-50">
-                            <ImageIcon size={48} className="text-muted-foreground" color="#71717a" />
-                            <Text className="text-muted-foreground mt-4 font-medium">No image selected</Text>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6">
+                {!selectedImage ? (
+                    <View className="flex-1 justify-center items-center py-12">
+                        <View className="bg-primary/5 p-8 rounded-[40px] mb-8 shadow-2xl shadow-primary/20">
+                            <Image
+                                source={LogoImage}
+                                className="w-32 h-32 rounded-2xl"
+                                resizeMode="contain"
+                            />
                         </View>
-                    )}
-                </View>
 
-                <View className="flex-row gap-4 mb-6">
-                    <Button onPress={openCamera} className="flex-1" variant="outline">
-                        <Camera size={20} className="text-foreground" color="black" />
-                        <Text>Camera</Text>
-                    </Button>
+                        <Text className="text-4xl font-extrabold tracking-tight text-center mb-3">
+                            LeafLens
+                        </Text>
+                        <Text className="text-muted-foreground text-center text-lg max-w-[280px] leading-relaxed mb-12">
+                            Instantly identify plant diseases with just a photo.
+                        </Text>
 
-                    <Button onPress={pickImage} className="flex-1" variant="secondary">
-                        <ImageIcon size={20} className="text-secondary-foreground" color="black" />
-                        <Text>Gallery</Text>
-                    </Button>
-                </View>
-
-                {selectedImage && (
-                    <View className="mt-2">
-                        {!result ? (
-                            <Button
-                                onPress={handleAnalyze}
-                                disabled={isAnalyzing}
-                                className="w-full"
-                                size="lg"
+                        <View className="w-full gap-4 max-w-sm">
+                            <TouchableOpacity
+                                onPress={openCamera}
+                                activeOpacity={0.8}
+                                className="bg-primary p-5 rounded-2xl flex-row items-center justify-center shadow-lg shadow-primary/25"
                             >
-                                {isAnalyzing ? (
-                                    <ActivityIndicator color="white" />
-                                ) : (
-                                    <>
-                                        <ScanLine size={20} color="white" />
-                                        <Text className="text-primary-foreground">Test This Image</Text>
-                                    </>
-                                )}
-                            </Button>
-                        ) : (
-                            <View className="bg-card border border-border p-5 rounded-2xl animate-in fade-in">
-                                <Text className={cn(
-                                    "font-semibold text-sm uppercase tracking-wider mb-1",
-                                    result.class.toLowerCase() === 'healthy' ? "text-green-600" : "text-destructive"
-                                )}>
-                                    {result.class.toLowerCase() === 'healthy' ? "Healthy Plant" : "Disease Detected"}
-                                </Text>
+                                <Camera size={24} color="white" className="mr-3" />
+                                <Text className="text-primary-foreground font-bold text-lg">Take a Photo</Text>
+                            </TouchableOpacity>
 
-                                <Text className="text-2xl font-bold mb-2 capitalize">
-                                    {result.class.replace(/([A-Z])/g, ' $1').trim()}
-                                </Text>
+                            <TouchableOpacity
+                                onPress={pickImage}
+                                activeOpacity={0.8}
+                                className="bg-secondary p-5 rounded-2xl flex-row items-center justify-center"
+                            >
+                                <ImageIcon size={24} color={theme.colors.foreground} className="mr-3" />
+                                <Text className="text-secondary-foreground font-semibold text-lg">Upload from Gallery</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                ) : (
+                    <View className="flex-1 py-8">
+                        <View className="flex-row items-center justify-between mb-6">
+                            <Text className="text-2xl font-bold">Analysis</Text>
+                            {!result && (
+                                <TouchableOpacity onPress={() => setSelectedImage(null)}>
+                                    <Text className="text-primary font-medium">Cancel</Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
 
-                                <Text className="text-muted-foreground mb-4">
-                                    Confidence: {(result.confidence * 100).toFixed(1)}%
-                                </Text>
+                        <View className="bg-muted/30 border border-border rounded-3xl h-[400px] w-full items-center justify-center overflow-hidden mb-8 shadow-sm relative">
+                            <Image
+                                source={{ uri: selectedImage }}
+                                className="w-full h-full"
+                                resizeMode="cover"
+                            />
+                            {!result && (
+                                <View className="absolute bottom-0 w-full bg-black/40 p-6 backdrop-blur-md">
+                                    <Button
+                                        onPress={handleAnalyze}
+                                        disabled={isAnalyzing}
+                                        className="w-full rounded-xl"
+                                        size="lg"
+                                    >
+                                        {isAnalyzing ? (
+                                            <ActivityIndicator color="white" />
+                                        ) : (
+                                            <>
+                                                <ScanLine size={20} color="white" className="mr-2" />
+                                                <Text className="text-primary-foreground font-bold">Analyze Plant</Text>
+                                            </>
+                                        )}
+                                    </Button>
+                                </View>
+                            )}
+                        </View>
 
-                                <View className="space-y-2 mb-6">
-                                    {result.all_predictions?.slice(0, 3).map((pred: any) => (
-                                        <View key={pred.class} className="flex-row items-center gap-2">
-                                            <View className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                                                <View
-                                                    className="h-full bg-primary"
-                                                    style={{ width: `${pred.confidence * 100}%` }}
-                                                />
-                                            </View>
-                                            <Text className="text-xs w-24 text-right" numberOfLines={1}>
-                                                {pred.class.replace(/([A-Z])/g, ' $1').trim()}
-                                            </Text>
-                                        </View>
-                                    ))}
+                        {result && (
+                            <View className="animate-in slide-in-from-bottom-10 fade-in duration-500">
+                                <View className="bg-card border border-border p-6 rounded-3xl shadow-sm mb-6">
+                                    <View className="flex-row items-center justify-between mb-2">
+                                        <Text className={cn(
+                                            "font-bold text-sm uppercase tracking-wider px-3 py-1 rounded-full overflow-hidden",
+                                            result.class.toLowerCase() === 'healthy'
+                                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                        )}>
+                                            {result.class.toLowerCase() === 'healthy' ? "Healthy" : "Infected"}
+                                        </Text>
+                                        <Text className="text-muted-foreground font-medium">
+                                            {(result.confidence * 100).toFixed(0)}% Match
+                                        </Text>
+                                    </View>
+
+                                    <Text className="text-3xl font-extrabold mb-1 capitalize text-foreground">
+                                        {result.class.replace(/([A-Z])/g, ' $1').trim()}
+                                    </Text>
+
+                                    {result.class.toLowerCase() !== 'healthy' && (
+                                        <Text className="text-muted-foreground leading-6 mt-2">
+                                            This plant shows distinct signs of {result.class}. Recommended actions include isolating the plant and checking for specific treatments.
+                                        </Text>
+                                    )}
                                 </View>
 
                                 <Button
                                     onPress={() => { setSelectedImage(null); setResult(null); }}
                                     variant="outline"
-                                    className="w-full"
+                                    className="w-full h-14 rounded-2xl border-2"
                                 >
-                                    <RefreshCcw size={16} className="mr-2 text-foreground" color="black" />
-                                    <Text>Scan Another</Text>
+                                    <RefreshCcw size={18} className="mr-2 text-foreground" color={theme.colors.foreground} />
+                                    <Text className="font-semibold text-lg">Scan Another Plant</Text>
                                 </Button>
                             </View>
                         )}
