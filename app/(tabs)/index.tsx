@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useColorScheme } from 'nativewind';
 import { NAV_THEME } from '@/lib/theme';
+import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
 
 // Backend URL - Adjust 10.0.2.2 for Android Emulator, localhost for iOS Simulator
 const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
@@ -105,22 +106,34 @@ export default function ScanScreen() {
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6">
                 {!selectedImage ? (
                     <View className="flex-1 justify-center items-center py-12">
-                        <View className="bg-primary/5 p-8 rounded-[40px] mb-8 shadow-2xl shadow-primary/20">
+                        <Animated.View
+                            entering={FadeInDown.delay(200).duration(1000).springify()}
+                            className="bg-primary/5 p-8 rounded-[40px] mb-8 shadow-2xl shadow-primary/20"
+                        >
                             <Image
                                 source={LogoImage}
                                 className="w-32 h-32 rounded-2xl"
                                 resizeMode="contain"
                             />
-                        </View>
+                        </Animated.View>
 
-                        <Text className="text-4xl font-extrabold tracking-tight text-center mb-3 font-heading">
+                        <Animated.Text
+                            entering={FadeInDown.delay(400).duration(1000).springify()}
+                            className="text-4xl font-extrabold tracking-tight text-center mb-3 font-heading"
+                        >
                             LeafLens
-                        </Text>
-                        <Text className="text-muted-foreground text-center text-lg max-w-[280px] leading-relaxed mb-12">
+                        </Animated.Text>
+                        <Animated.Text
+                            entering={FadeInDown.delay(600).duration(1000).springify()}
+                            className="text-muted-foreground text-center text-lg max-w-[280px] leading-relaxed mb-12"
+                        >
                             Instantly identify plant diseases with just a photo.
-                        </Text>
+                        </Animated.Text>
 
-                        <View className="w-full gap-4 max-w-sm">
+                        <Animated.View
+                            entering={FadeInUp.delay(800).duration(1000).springify()}
+                            className="w-full gap-4 max-w-sm"
+                        >
                             <TouchableOpacity
                                 onPress={openCamera}
                                 activeOpacity={0.8}
@@ -138,7 +151,7 @@ export default function ScanScreen() {
                                 <ImageIcon size={24} color={theme.colors.foreground} className="mr-3" />
                                 <Text className="text-secondary-foreground font-semibold text-lg">Upload from Gallery</Text>
                             </TouchableOpacity>
-                        </View>
+                        </Animated.View>
                     </View>
                 ) : (
                     <View className="flex-1 py-8">
@@ -151,7 +164,10 @@ export default function ScanScreen() {
                             )}
                         </View>
 
-                        <View className="bg-muted/30 border border-border rounded-3xl h-[400px] w-full items-center justify-center overflow-hidden mb-8 shadow-sm relative">
+                        <Animated.View
+                            entering={FadeIn.duration(500)}
+                            className="bg-muted/30 border border-border rounded-3xl h-[400px] w-full items-center justify-center overflow-hidden mb-8 shadow-sm relative"
+                        >
                             <Image
                                 source={{ uri: selectedImage }}
                                 className="w-full h-full"
@@ -176,36 +192,41 @@ export default function ScanScreen() {
                                     </Button>
                                 </View>
                             )}
-                        </View>
+                        </Animated.View>
 
                         {result && (
-                            <View className="animate-in slide-in-from-bottom-10 fade-in duration-500">
-                                <View className="bg-card border border-border p-6 rounded-3xl shadow-sm mb-6">
-                                    <View className="flex-row items-center justify-between mb-2">
-                                        <Text className={cn(
-                                            "font-bold text-sm uppercase tracking-wider px-3 py-1 rounded-full overflow-hidden",
-                                            result.class.toLowerCase() === 'healthy'
-                                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                        )}>
-                                            {result.class.toLowerCase() === 'healthy' ? "Healthy" : "Infected"}
-                                        </Text>
-                                        <Text className="text-muted-foreground font-medium">
-                                            {(result.confidence * 100).toFixed(0)}% Match
-                                        </Text>
-                                    </View>
-
-                                    <Text className="text-3xl font-extrabold mb-1 capitalize text-foreground">
-                                        {result.class.replace(/([A-Z])/g, ' $1').trim()}
+                            <Animated.View
+                                entering={FadeInUp.springify().damping(12)}
+                                className="bg-card border border-border p-6 rounded-3xl shadow-sm mb-6"
+                            >
+                                <View className="flex-row items-center justify-between mb-2">
+                                    <Text className={cn(
+                                        "font-bold text-sm uppercase tracking-wider px-3 py-1 rounded-full overflow-hidden",
+                                        result.class.toLowerCase() === 'healthy'
+                                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                            : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                    )}>
+                                        {result.class.toLowerCase() === 'healthy' ? "Healthy" : "Infected"}
                                     </Text>
-
-                                    {result.class.toLowerCase() !== 'healthy' && (
-                                        <Text className="text-muted-foreground leading-6 mt-2">
-                                            This plant shows distinct signs of {result.class}. Recommended actions include isolating the plant and checking for specific treatments.
-                                        </Text>
-                                    )}
+                                    <Text className="text-muted-foreground font-medium">
+                                        {(result.confidence * 100).toFixed(0)}% Match
+                                    </Text>
                                 </View>
 
+                                <Text className="text-3xl font-extrabold mb-1 capitalize text-foreground">
+                                    {result.class.replace(/([A-Z])/g, ' $1').trim()}
+                                </Text>
+
+                                {result.class.toLowerCase() !== 'healthy' && (
+                                    <Text className="text-muted-foreground leading-6 mt-2">
+                                        This plant shows distinct signs of {result.class}. Recommended actions include isolating the plant and checking for specific treatments.
+                                    </Text>
+                                )}
+                            </Animated.View>
+                        )}
+
+                        {result && (
+                            <Animated.View entering={FadeInUp.delay(200).springify()}>
                                 <Button
                                     onPress={() => { setSelectedImage(null); setResult(null); }}
                                     variant="outline"
@@ -214,7 +235,7 @@ export default function ScanScreen() {
                                     <RefreshCcw size={18} className="mr-2 text-foreground" color={theme.colors.foreground} />
                                     <Text className="font-semibold text-lg">Scan Another Plant</Text>
                                 </Button>
-                            </View>
+                            </Animated.View>
                         )}
                     </View>
                 )}

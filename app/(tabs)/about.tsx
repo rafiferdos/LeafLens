@@ -5,6 +5,7 @@ import { Text } from '@/components/ui/text';
 import { Leaf, Heart } from 'lucide-react-native';
 import { NAV_THEME, THEME } from '@/lib/theme';
 import { useColorScheme } from 'nativewind';
+import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
 
 const RafiImage = require('../../assets/images/rafi.jpg');
 const MimImage = require('../../assets/images/mim.jpg');
@@ -21,7 +22,10 @@ export default function AboutScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* Header Section */}
-                <View className="items-center mt-8 mb-12">
+                <Animated.View
+                    entering={FadeInDown.duration(800).springify()}
+                    className="items-center mt-8 mb-12"
+                >
                     <View className="bg-primary/10 p-5 rounded-3xl mb-6 shadow-sm">
                         <Leaf size={48} color={theme.colors.primary} />
                     </View>
@@ -31,18 +35,24 @@ export default function AboutScreen() {
                     <Text className="text-muted-foreground text-center text-lg max-w-[280px]">
                         Nurturing nature with the power of vision.
                     </Text>
-                </View>
+                </Animated.View>
 
                 {/* Mission Section */}
-                <View className="mb-12">
+                <Animated.View
+                    entering={FadeInUp.delay(200).duration(800).springify()}
+                    className="mb-12"
+                >
                     <Text className="text-xl font-semibold mb-3">Our Mission</Text>
                     <Text className="text-muted-foreground leading-7 text-lg">
                         We believe that every plant deserves to thrive. LeafLens empowers you to understand your green companions better, bringing expert botanical knowledge to your fingertips instantly.
                     </Text>
-                </View>
+                </Animated.View>
 
                 {/* The Team Section */}
-                <View className="mb-8">
+                <Animated.View
+                    entering={FadeInUp.delay(400).duration(800).springify()}
+                    className="mb-8"
+                >
                     <Text className="text-xl font-semibold mb-6 flex-row items-center">
                         Built with <Heart size={20} color={isDark ? '#f472b6' : '#ec4899'} fill={isDark ? '#f472b6' : '#ec4899'} /> by
                     </Text>
@@ -78,13 +88,16 @@ export default function AboutScreen() {
                             </View>
                         </View>
                     </View>
-                </View>
+                </Animated.View>
 
-                <View className="items-center mt-4">
+                <Animated.View
+                    entering={FadeIn.delay(600).duration(1000)}
+                    className="items-center mt-4"
+                >
                     <Text className="text-sm text-muted-foreground/60">
                         Version 1.0.0 (Native)
                     </Text>
-                </View>
+                </Animated.View>
 
             </ScrollView>
         </SafeAreaView>
