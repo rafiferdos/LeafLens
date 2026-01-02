@@ -148,7 +148,7 @@ export default function ScanScreen() {
                                 activeOpacity={0.8}
                                 className="bg-secondary p-5 rounded-2xl flex-row items-center justify-center"
                             >
-                                <ImageIcon size={24} color={theme.colors.foreground} className="mr-3" />
+                                <ImageIcon size={24} color={theme.colors.text} className="mr-3" />
                                 <Text className="text-secondary-foreground font-semibold text-lg">Upload from Gallery</Text>
                             </TouchableOpacity>
                         </Animated.View>
@@ -232,7 +232,7 @@ export default function ScanScreen() {
                                     variant="outline"
                                     className="w-full h-14 rounded-2xl border-2"
                                 >
-                                    <RefreshCcw size={18} className="mr-2 text-foreground" color={theme.colors.foreground} />
+                                    <RefreshCcw size={18} className="mr-2 text-foreground" color={theme.colors.text} />
                                     <Text className="font-semibold text-lg">Scan Another Plant</Text>
                                 </Button>
                             </Animated.View>
