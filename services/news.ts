@@ -89,9 +89,21 @@ const MOCK_ARTICLES: Article[] = [
 // Google News RSS Logic
 const GOOGLE_RSS_URL = 'https://news.google.com/rss/search';
 
-const fetchEggplantNewsInternal = async (): Promise<Article[]> => {
+// strict cache for pagination support
+let allFetchedArticles: Article[] = [];
+let lastFetchTime = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+const fetchEggplantNewsInternal = async (page: number = 1, limit: number = 10): Promise<Article[]> => {
     try {
-        console.log("Fetching news from Google News RSS (South Asia)...");
+        const now = Date.now();
+        if (allFetchedArticles.length > 0 && (page > 1 || now - lastFetchTime < CACHE_DURATION)) {
+            const startIndex = (page - 1) * limit;
+            // console.log(`Returning cached items ${startIndex} to ${startIndex + limit}`);
+            return allFetchedArticles.slice(startIndex, startIndex + limit);
+        }
+
+        console.log("Fetching fresh news from Google News RSS (South Asia)...");
         // q=eggplant+OR+brinjal indicates the topic
         // hl=en-IN&gl=IN&ceid=IN:en targets India/South Asia English region
         const query = 'eggplant OR brinjal OR aubergine';
@@ -178,7 +190,14 @@ const fetchEggplantNewsInternal = async (): Promise<Article[]> => {
             return [];
         }
 
-        return articles;
+        // Sort: Latest First
+        articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
+        allFetchedArticles = articles;
+        lastFetchTime = Date.now();
+
+        const startIndex = (page - 1) * limit;
+        return allFetchedArticles.slice(startIndex, startIndex + limit);
 
     } catch (error) {
         console.error('Error fetching RSS news:', error);

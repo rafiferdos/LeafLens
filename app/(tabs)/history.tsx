@@ -7,8 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { Trash2, Calendar, Clock } from 'lucide-react-native';
 
+import Animated, { FadeInDown } from 'react-native-reanimated';
+
 export default function HistoryScreen() {
     const [history, setHistory] = useState<any[]>([]);
+    const [animationKey, setAnimationKey] = useState(0);
 
     const loadHistory = async () => {
         try {
@@ -21,29 +24,14 @@ export default function HistoryScreen() {
         }
     };
 
-    const clearHistory = async () => {
-        Alert.alert(
-            "Clear History",
-            "Are you sure you want to delete all scan history?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete",
-                    style: "destructive",
-                    onPress: async () => {
-                        await AsyncStorage.removeItem('scanHistory');
-                        setHistory([]);
-                    }
-                }
-            ]
-        );
-    };
-
     useFocusEffect(
         useCallback(() => {
             loadHistory();
+            setAnimationKey(prev => prev + 1);
         }, [])
     );
+
+    // ... (clearHistory function)
 
     return (
         <SafeAreaView className="flex-1 bg-background">
@@ -65,12 +53,16 @@ export default function HistoryScreen() {
                 </View>
             ) : (
                 <FlatList
+                    key={animationKey}
                     data={history}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
                     ItemSeparatorComponent={() => <View className="h-4" />}
-                    renderItem={({ item }) => (
-                        <View className="flex-row bg-card border border-border rounded-xl overflow-hidden p-3 gap-4">
+                    renderItem={({ item, index }) => (
+                        <Animated.View
+                            entering={FadeInDown.delay(index * 100).springify()}
+                            className="flex-row bg-card border border-border rounded-xl overflow-hidden p-3 gap-4"
+                        >
                             <Image
                                 source={{ uri: item.imageUri }}
                                 className="w-20 h-20 rounded-lg bg-muted"
@@ -100,7 +92,7 @@ export default function HistoryScreen() {
                                     </View>
                                 </View>
                             </View>
-                        </View>
+                        </Animated.View>
                     )}
                 />
             )}

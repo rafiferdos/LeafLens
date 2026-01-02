@@ -16,13 +16,24 @@ const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://loc
 // Using the icon as the logo element, but smaller
 const AppIcon = require('../../assets/images/icon.png');
 
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
+
 export default function ScanScreen() {
+    const router = useRouter();
     const { colorScheme } = useColorScheme();
     const theme = NAV_THEME[colorScheme ?? 'light'];
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [result, setResult] = useState<any>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [recentScan, setRecentScan] = useState<any>(null);
+    const [animationKey, setAnimationKey] = useState(0);
+
+    useFocusEffect(
+        useCallback(() => {
+            setAnimationKey(prev => prev + 1);
+        }, [])
+    );
 
     // Load recent scan on mount
     useEffect(() => {
@@ -227,6 +238,7 @@ export default function ScanScreen() {
     return (
         <SafeAreaView className="flex-1 bg-background" edges={['top']}>
             <ScrollView
+                key={animationKey}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
                 className="flex-1"
                 showsVerticalScrollIndicator={false}
@@ -289,13 +301,15 @@ export default function ScanScreen() {
                     </Animated.View>
 
                     <Animated.View entering={FadeInDown.delay(300).duration(600)} className="flex-1">
-                        <View className="bg-secondary/30 p-4 rounded-2xl border border-secondary items-center justify-center gap-3 h-32 opacity-80">
-                            {/* Placeholder for future features */}
+                        <TouchableOpacity
+                            onPress={() => router.push('/garden')}
+                            className="bg-secondary/30 p-4 rounded-2xl border border-secondary items-center justify-center gap-3 h-32"
+                        >
                             <View className="w-12 h-12 rounded-full bg-background items-center justify-center shadow-sm">
                                 <Leaf size={24} color={theme.colors.text} />
                             </View>
                             <Text className="font-semibold text-foreground">My Garden</Text>
-                        </View>
+                        </TouchableOpacity>
                     </Animated.View>
                 </View>
 

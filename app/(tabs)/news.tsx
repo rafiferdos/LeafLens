@@ -1,9 +1,9 @@
 import { View, FlatList, TouchableOpacity, Image, RefreshControl } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { fetchEggplantNews, Article } from '@/services/news';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { NAV_THEME, THEME } from '@/lib/theme';
 import { useColorScheme } from 'nativewind';
@@ -15,9 +15,16 @@ export default function NewsScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const [animationKey, setAnimationKey] = useState(0);
     const router = useRouter();
     const { colorScheme } = useColorScheme();
     const theme = NAV_THEME[colorScheme ?? 'light'];
+
+    useFocusEffect(
+        useCallback(() => {
+            setAnimationKey(prev => prev + 1);
+        }, [])
+    );
 
     const loadNews = async (pageNum: number, shouldRefresh: boolean = false) => {
         if (pageNum === 1) setLoading(true);
@@ -133,6 +140,7 @@ export default function NewsScreen() {
             </View>
 
             <FlatList
+                key={animationKey}
                 data={articles}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}

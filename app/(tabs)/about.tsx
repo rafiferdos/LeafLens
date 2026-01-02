@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Image, ScrollView, Linking, TouchableOpacity, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { Leaf, Heart, Moon, Sun, Monitor, Palette } from 'lucide-react-native';
 import { NAV_THEME } from '@/lib/theme';
@@ -12,12 +13,20 @@ const MimImage = require('../../assets/images/mim.jpg');
 
 export default function AboutScreen() {
     const { colorScheme, setColorScheme } = useColorScheme();
+    const [animationKey, setAnimationKey] = useState(0);
+
+    useFocusEffect(
+        useCallback(() => {
+            setAnimationKey(prev => prev + 1);
+        }, [])
+    );
     const theme = NAV_THEME[colorScheme ?? 'light'];
     const isDark = colorScheme === 'dark';
 
     return (
         <SafeAreaView className="flex-1 bg-background">
             <ScrollView
+                key={animationKey}
                 contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
             >
