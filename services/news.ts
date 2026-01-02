@@ -86,64 +86,68 @@ const MOCK_ARTICLES: Article[] = [
     },
 ];
 
-// NewsData.io API Key
-const API_KEY = process.env.EXPO_PUBLIC_NEWSDATA_API_KEY || 'pub_64858d88691522a4d334057884d6642d997da'; // Use env variable in prod!
-const BASE_URL = 'https://newsdata.io/api/1/news';
+// Google News RSS Logic
+const GOOGLE_RSS_URL = 'https://news.google.com/rss/search';
 
 const fetchEggplantNewsInternal = async (): Promise<Article[]> => {
     try {
-        console.log("Fetching news from NewsData.io...");
-        // Country codes: in (India), pk (Pakistan), bd (Bangladesh), lk (Sri Lanka), np (Nepal)
-        // Note: NewsData.io free tier might have limits on how many countries you can filter at once or which ones are available.
-        // If 'eggplant' results are low, consider adding 'aubergine', 'brinjal' (common in South Asia).
-        const query = 'eggplant OR brinjal OR aubergine'; // Expanded query for better results in this region
-        const countries = 'in,pk,bd,lk,np';
-
-        const url = `${BASE_URL}?apikey=${API_KEY}&q=${encodeURIComponent(query)}&country=${countries}&language=en`;
+        console.log("Fetching news from Google News RSS (South Asia)...");
+        // q=eggplant+OR+brinjal indicates the topic
+        // hl=en-IN&gl=IN&ceid=IN:en targets India/South Asia English region
+        const query = 'eggplant OR brinjal OR aubergine';
+        const url = `${GOOGLE_RSS_URL}?q=${encodeURIComponent(query)}+when:30d&hl=en-IN&gl=IN&ceid=IN:en`;
 
         const response = await fetch(url);
+        const text = await response.text();
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.warn(`NewsData API request failed (${response.status}):`, errorText);
+        // Simple Regex Parser for RSS (XML)
+        // Note: In a production app, use a proper XML parser like 'fast-xml-parser'
+        const itemRegex = /<item>[\s\S]*?<\/item>/g;
+        const items = text.match(itemRegex) || [];
+
+        const articles: Article[] = items.map((itemXml) => {
+            const titleMatch = itemXml.match(/<title>(.*?)<\/title>/);
+            const linkMatch = itemXml.match(/<link>(.*?)<\/link>/);
+            const pubDateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/);
+            const sourceMatch = itemXml.match(/<source.*?>([\s\S]*?)<\/source>/);
+            const guidMatch = itemXml.match(/<guid.*?>(.*?)<\/guid>/);
+            // Description often contains HTML link, plain text is harder to extract cleanly without a DOM parser
+            // We'll try to just grab the raw html or a snippet. Google description is usually just a link anchor.
+            // Actually Google News description is often just a link to the article again.
+            // We will leave description empty or try to clean it.
+            const descriptionMatch = itemXml.match(/<description>([\s\S]*?)<\/description>/);
+
+            let id = guidMatch ? guidMatch[1] : Math.random().toString();
+            const link = linkMatch ? linkMatch[1] : '';
+            const title = titleMatch ? titleMatch[1] : 'No Title';
+            const date = pubDateMatch ? pubDateMatch[1] : new Date().toISOString();
+            const sourceName = sourceMatch ? sourceMatch[1] : 'News';
+
+            // Attempt to simulate a description from title if missing (Google RSS implies title is the news)
+            const description = descriptionMatch ? descriptionMatch[1].replace(/<[^>]+>/g, '') : title;
+
+            return {
+                id,
+                source: { id: null, name: sourceName },
+                author: sourceName, // Google RSS doesn't give author usually
+                title,
+                description,
+                url: link,
+                urlToImage: null, // RSS doesn't provide standard images
+                publishedAt: date,
+                content: null
+            };
+        });
+
+        if (articles.length === 0) {
+            console.log("No RSS items found.");
             return [];
         }
 
-        const data: NewsDataResponse = await response.json();
-
-        if (data.status !== 'success') {
-            console.warn('NewsData API returned error status:', data);
-            return [];
-        }
-
-        // Map NewsData structure to our App's Article structure
-        const mappedArticles: Article[] = data.results
-            .filter(item => item.title && item.link) // Basic validation
-            .map(item => ({
-                id: item.article_id,
-                source: {
-                    id: item.source_id,
-                    name: item.source_id // NewsData doesn't give a pretty name separate from ID usually
-                },
-                author: item.creator ? item.creator.join(', ') : null,
-                title: item.title,
-                description: item.description || null,
-                url: item.link,
-                urlToImage: item.image_url || null,
-                publishedAt: item.pubDate,
-                content: item.content || null
-            }));
-
-        // If no results found, return mock data so the screen isn't empty during demo
-        if (mappedArticles.length === 0) {
-            console.log("No live articles found for these criteria.");
-            return [];
-        }
-
-        return mappedArticles;
+        return articles;
 
     } catch (error) {
-        console.error('Error fetching news:', error);
+        console.error('Error fetching RSS news:', error);
         return [];
     }
 };
