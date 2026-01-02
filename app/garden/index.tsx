@@ -290,7 +290,7 @@ export default function MyGardenScreen() {
                                         }}>
                                             <SelectTrigger className="w-full h-12 bg-secondary/30 px-3 border-border rounded-xl justify-center">
                                                 <SelectValue
-                                                    className="text-foreground text-sm native:text-lg"
+                                                    className="text-foreground text-sm native:text-base font-bold"
                                                     placeholder="Select Type"
                                                 />
                                             </SelectTrigger>
@@ -392,10 +392,10 @@ export default function MyGardenScreen() {
 
                             {/* Detailed Info */}
                             <View className="gap-3 mt-2">
-                                <Text className="text-sm font-bold text-foreground flex-row items-center gap-2">
-                                    <Info size={14} className="mr-2" color={colors.mutedForeground} />
-                                    Details
-                                </Text>
+                                <View className="flex-row items-center gap-2 mb-1">
+                                    <Info size={14} color={colors.mutedForeground} />
+                                    <Text className="text-sm font-bold text-foreground">Details</Text>
+                                </View>
                                 <View className="flex-row gap-3">
                                     <TextInput
                                         className="flex-1 bg-secondary/30 p-3 rounded-xl border border-border text-foreground text-xs"
