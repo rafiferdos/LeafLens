@@ -17,6 +17,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "expo": "~54.0.29",
+    "expo-blur": "~15.0.8",
     "expo-constants": "~18.0.12",
     "expo-image-picker": "^17.0.10",
     "expo-linking": "~8.0.10",
