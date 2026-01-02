@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Leaf, History, Info } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import { NAV_THEME } from '@/lib/theme';
 
@@ -35,13 +35,15 @@ export default function TabLayout() {
                             right: 0,
                             bottom: 0,
                             overflow: 'hidden',
+                            // Fallback for Android if native blur isn't enabled
+                            backgroundColor: Platform.OS === 'android' ? (colorScheme === 'dark' ? 'rgba(10,10,10,0.95)' : 'rgba(255,255,255,0.95)') : 'transparent',
                         }}
-                        tint={colorScheme === 'dark' ? 'systemChromeMaterialDark' : 'systemChromeMaterialLight'}
+                        tint={colorScheme === 'dark' ? 'dark' : 'light'}
                     >
-                        {/* Extra overlay for that "liquid" glass sheen, especially on Android where blur might differ */}
+                        {/* Extra overlay for that "liquid" glass sheen */}
                         <View style={{
                             flex: 1,
-                            backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.4)'
+                            backgroundColor: colorScheme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)'
                         }} />
                     </BlurView>
                 ),

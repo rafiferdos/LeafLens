@@ -103,7 +103,7 @@ export default function ScanScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-background">
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6">
+            <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }} className="px-6">
                 {!selectedImage ? (
                     <View className="flex-1 justify-center items-center py-12">
                         <Animated.View
