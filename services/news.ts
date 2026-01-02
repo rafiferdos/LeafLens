@@ -106,15 +106,14 @@ const fetchEggplantNewsInternal = async (): Promise<Article[]> => {
         if (!response.ok) {
             const errorText = await response.text();
             console.warn(`NewsData API request failed (${response.status}):`, errorText);
-            console.warn('Falling back to mock data.');
-            return MOCK_ARTICLES;
+            return [];
         }
 
         const data: NewsDataResponse = await response.json();
 
         if (data.status !== 'success') {
             console.warn('NewsData API returned error status:', data);
-            return MOCK_ARTICLES;
+            return [];
         }
 
         // Map NewsData structure to our App's Article structure
@@ -137,24 +136,20 @@ const fetchEggplantNewsInternal = async (): Promise<Article[]> => {
 
         // If no results found, return mock data so the screen isn't empty during demo
         if (mappedArticles.length === 0) {
-            console.log("No live articles found for these criteria. Showing mock South Asian data.");
-            return MOCK_ARTICLES;
+            console.log("No live articles found for these criteria.");
+            return [];
         }
 
         return mappedArticles;
 
     } catch (error) {
         console.error('Error fetching news:', error);
-        return MOCK_ARTICLES;
+        return [];
     }
 };
 
 export const getArticleById = async (id: string): Promise<Article | undefined> => {
-    // 1. Try finding in MOCK_ARTICLES first (if we are in fallback mode)
-    const mock = MOCK_ARTICLES.find(a => a.id === id);
-    if (mock) return mock;
-
-    // 2. In a real app with state management (Redux/Zustand), we would look up the store.
+    // 1. In a real app with state management (Redux/Zustand), we would look up the store.
     // Since we don't have that, and NewsData.io doesn't have a free "get single article" endpoint easily accessible without search costs,
     // we will have to RELY on the fact that the user clicked an item from the list we just fetched.
 
@@ -175,7 +170,7 @@ let cachedArticles: Article[] = [];
 const originalFetch = fetchEggplantNewsInternal;
 export const fetchEggplantNewsWithCache = async (): Promise<Article[]> => {
     const articles = await originalFetch();
-    cachedArticles = [...MOCK_ARTICLES, ...articles]; // Keep mock in cache so they work too
+    cachedArticles = [...articles];
     return articles;
 };
 
