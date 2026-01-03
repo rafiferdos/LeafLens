@@ -353,7 +353,12 @@ export default function MyGardenScreen() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <ScrollView className="max-h-[600px]" showsVerticalScrollIndicator={false}>
+                    <ScrollView
+                        className="max-h-[600px]"
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 40 }}
+                        keyboardShouldPersistTaps="handled"
+                    >
                         <View className="gap-6 py-4">
                             {/* Image & Basic Info */}
                             <View className="items-center mb-2">
@@ -418,7 +423,7 @@ export default function MyGardenScreen() {
                                     <Droplets size={16} color={colors.primary} />
                                     <Text className="text-sm font-bold text-foreground">Watering Frequency</Text>
                                 </View>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+                                <View className="flex-row flex-wrap gap-2">
                                     {['Daily', 'Weekly', 'Bi-weekly', 'Monthly'].map((freq) => (
                                         <TouchableOpacity
                                             key={freq}
@@ -426,13 +431,13 @@ export default function MyGardenScreen() {
                                             className={`px-4 py-2 rounded-full border ${wateringFrequency === freq
                                                 ? 'bg-primary border-primary'
                                                 : 'bg-transparent border-border'
-                                                } mr-2`}
+                                                }`}
                                         >
                                             <Text className={`text-xs font-medium ${wateringFrequency === freq ? 'text-white' : 'text-muted-foreground'
                                                 }`}>{freq}</Text>
                                         </TouchableOpacity>
                                     ))}
-                                </ScrollView>
+                                </View>
                             </View>
 
                             <View className="gap-3">
@@ -460,7 +465,7 @@ export default function MyGardenScreen() {
                             <View className="flex-row gap-4 items-end">
                                 <View className="flex-1 gap-2">
                                     <Text className="text-xs font-bold text-muted-foreground uppercase ml-1">Difficulty</Text>
-                                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                    <View className="flex-row flex-wrap gap-2">
                                         {['Easy', 'Medium', 'Hard'].map((diff) => (
                                             <TouchableOpacity
                                                 key={diff}
@@ -468,13 +473,13 @@ export default function MyGardenScreen() {
                                                 className={`px-3 py-2 rounded-lg border ${difficulty === diff
                                                     ? 'bg-secondary border-foreground/20'
                                                     : 'bg-transparent border-border'
-                                                    } mr-2`}
+                                                    }`}
                                             >
                                                 <Text className={`text-xs ${difficulty === diff ? 'font-bold text-foreground' : 'text-muted-foreground'
                                                     }`}>{diff}</Text>
                                             </TouchableOpacity>
                                         ))}
-                                    </ScrollView>
+                                    </View>
                                 </View>
                                 <View>
                                     <TouchableOpacity
