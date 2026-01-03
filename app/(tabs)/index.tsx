@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils';
 import { useColorScheme } from 'nativewind';
 import { NAV_THEME, THEME } from '@/lib/theme';
 import { useLanguage } from '@/lib/language';
-import { useRouter, useNavigation } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { diseaseDatabase, DiseaseData } from '@/lib/disease-data';
 
@@ -229,7 +230,7 @@ export default function HomeScreen() {
                                             <View className="gap-4">
                                                 <Text className="text-center font-bold text-lg">Ready to Analyze</Text>
                                                 <Button size="lg" className="w-full h-14 rounded-xl" onPress={handleAnalyze} disabled={isAnalyzing}>
-                                                    {isAnalyzing ? <ActivityIndicator color="white" /> : <><Search size={20} color="white" className="mr-2" /><Text className="text-white font-bold text-lg">{t('diagnoseInstantly')}</Text></>}
+                                                    {isAnalyzing ? <ActivityIndicator color="white" /> : <><Search size={20} color="white" className="mr-2" /><Text className="text-white font-bold text-lg">Diagnose Plant</Text></>}
                                                 </Button>
                                             </View>
                                         ) : isAnalyzing ? (
@@ -367,29 +368,59 @@ export default function HomeScreen() {
                         contentContainerStyle={{ paddingHorizontal: 24, gap: 16, paddingBottom: 24 }}
                         className="-mx-6"
                     >
-                        {/* Sunlight */}
-                        <View className="w-40 bg-orange-100/50 dark:bg-orange-900/20 p-5 rounded-[24px] items-center gap-3 border border-orange-200/50">
-                            <View className="w-12 h-12 bg-orange-100 dark:bg-orange-900/40 rounded-full items-center justify-center">
-                                <Sun size={24} color="#f97316" />
+                        {/* Sunlight Card */}
+                        <View className="w-44 h-56 bg-orange-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-lg shadow-orange-500/40">
+                            {/* Background Pattern */}
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-12">
+                                <Sun size={120} color="white" />
                             </View>
-                            <Text className="font-bold text-sm text-center">{t('sunlight')}</Text>
-                            <Text className="text-xs text-center text-muted-foreground leading-4">{t('sunlightTip')}</Text>
+
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Sun size={24} color="white" />
+                            </View>
+
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">{t('sunlight')}</Text>
+                                <Text className="text-orange-50 text-xs font-medium leading-5">
+                                    {t('sunlightTip')}
+                                </Text>
+                            </View>
                         </View>
-                        {/* Watering */}
-                        <View className="w-40 bg-blue-100/50 dark:bg-blue-900/20 p-5 rounded-[24px] items-center gap-3 border border-blue-200/50">
-                            <View className="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-full items-center justify-center">
-                                <Droplets size={24} color="#3b82f6" />
+
+                        {/* Watering Card */}
+                        <View className="w-44 h-56 bg-blue-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-lg shadow-blue-500/40">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform -rotate-12">
+                                <Droplets size={120} color="white" />
                             </View>
-                            <Text className="font-bold text-sm text-center">{t('watering')}</Text>
-                            <Text className="text-xs text-center text-muted-foreground leading-4">{t('wateringTip')}</Text>
+
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Droplets size={24} color="white" />
+                            </View>
+
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">{t('watering')}</Text>
+                                <Text className="text-blue-50 text-xs font-medium leading-5">
+                                    {t('wateringTip')}
+                                </Text>
+                            </View>
                         </View>
-                        {/* Temp */}
-                        <View className="w-40 bg-red-100/50 dark:bg-red-900/20 p-5 rounded-[24px] items-center gap-3 border border-red-200/50">
-                            <View className="w-12 h-12 bg-red-100 dark:bg-red-900/40 rounded-full items-center justify-center">
-                                <Thermometer size={24} color="#ef4444" />
+
+                        {/* Temp Card */}
+                        <View className="w-44 h-56 bg-red-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-lg shadow-red-500/40">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-6">
+                                <Thermometer size={120} color="white" />
                             </View>
-                            <Text className="font-bold text-sm text-center">{t('temp')}</Text>
-                            <Text className="text-xs text-center text-muted-foreground leading-4">{t('tempTip')}</Text>
+
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Thermometer size={24} color="white" />
+                            </View>
+
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">{t('temp')}</Text>
+                                <Text className="text-red-50 text-xs font-medium leading-5">
+                                    {t('tempTip')}
+                                </Text>
+                            </View>
                         </View>
                     </ScrollView>
                 </View>
