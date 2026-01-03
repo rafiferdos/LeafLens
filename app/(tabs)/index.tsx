@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Image, ScrollView, ActivityIndicator, Alert, Platform, TouchableOpacity, Dimensions, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Image as ImageIcon, ScanLine, Leaf, RefreshCcw, ArrowRight, Sun, Droplets, Thermometer, Search, AlertCircle, CheckCircle, Smartphone, Globe, User, ChevronRight, Stethoscope, Sprout, Pill } from 'lucide-react-native';
+import { Camera, Image as ImageIcon, ScanLine, Leaf, RefreshCcw, ArrowRight, Sun, Droplets, Thermometer, Search, AlertCircle, CheckCircle, Smartphone, Globe, User, ChevronRight, Stethoscope, Sprout, Pill, CloudRain, Layers, Scissors, Bug, Wind } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -35,6 +35,7 @@ export default function HomeScreen() {
     const [userPhoto, setUserPhoto] = useState<string | null>(null);
 
     useEffect(() => {
+        // Use standard navigation listener to ensure updates when screen focuses
         const unsubscribe = navigation.addListener('focus', () => {
             setAnimationKey(prev => prev + 1);
             loadUserProfile();
@@ -208,9 +209,7 @@ export default function HomeScreen() {
                                 </View>
                             </View>
                         ) : (
-                            // ===========================================
-                            // NEW RESULT DESIGN STARTS HERE
-                            // ===========================================
+                            // Result View
                             <View className="bg-background">
                                 <View className="h-72 w-full relative">
                                     <Image source={{ uri: selectedImage }} className="w-full h-full" resizeMode="cover" />
@@ -293,10 +292,10 @@ export default function HomeScreen() {
                                                     )}
                                                 </View>
 
-                                                {/* CONTENT AREA */}
+                                                {/* CONTENT AREA - Using stable Views instead of Animated.View to prevent crashes */}
                                                 <View className="min-h-[120px]">
                                                     {activeTab === 'overview' && (
-                                                        <Animated.View entering={FadeInDown.duration(300)}>
+                                                        <View>
                                                             <View className="flex-row gap-3 mb-2">
                                                                 <Sprout size={18} color={theme.colors.primary} />
                                                                 <Text className="font-bold">About this condition</Text>
@@ -304,11 +303,11 @@ export default function HomeScreen() {
                                                             <Text className="text-muted-foreground leading-6 text-sm">
                                                                 {getDiseaseInfo(result.class)?.description || "No description available."}
                                                             </Text>
-                                                        </Animated.View>
+                                                        </View>
                                                     )}
 
                                                     {activeTab === 'symptoms' && (
-                                                        <Animated.View entering={FadeInDown.duration(300)}>
+                                                        <View>
                                                             <View className="flex-row gap-3 mb-2">
                                                                 <Stethoscope size={18} color="#f97316" />
                                                                 <Text className="font-bold">Common Symptoms</Text>
@@ -321,11 +320,11 @@ export default function HomeScreen() {
                                                                     </View>
                                                                 ))}
                                                             </View>
-                                                        </Animated.View>
+                                                        </View>
                                                     )}
 
                                                     {activeTab === 'treatment' && (
-                                                        <Animated.View entering={FadeInDown.duration(300)}>
+                                                        <View>
                                                             <View className="flex-row gap-3 mb-2">
                                                                 <Pill size={18} color="#3b82f6" />
                                                                 <Text className="font-bold">Recommended Treatment</Text>
@@ -338,7 +337,7 @@ export default function HomeScreen() {
                                                                     </View>
                                                                 ))}
                                                             </View>
-                                                        </Animated.View>
+                                                        </View>
                                                     )}
                                                 </View>
 
@@ -366,60 +365,144 @@ export default function HomeScreen() {
                         horizontal
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ paddingHorizontal: 24, gap: 16, paddingBottom: 24 }}
-                        className="-mx-6"
                     >
                         {/* Sunlight Card */}
-                        <View className="w-44 h-56 bg-orange-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-lg shadow-orange-500/40">
-                            {/* Background Pattern */}
+                        <View className="w-44 h-56 bg-orange-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm hover:shadow-lg transition-all">
                             <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-12">
                                 <Sun size={120} color="white" />
                             </View>
-
                             <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
                                 <Sun size={24} color="white" />
                             </View>
-
                             <View>
-                                <Text className="font-bold text-white text-lg mb-2">{t('sunlight')}</Text>
-                                <Text className="text-orange-50 text-xs font-medium leading-5">
-                                    {t('sunlightTip')}
-                                </Text>
+                                <Text className="font-bold text-white text-lg mb-2">Sunlight</Text>
+                                <Text className="text-orange-50 text-xs font-medium leading-5">Most indoor plants prefer bright, indirect light.</Text>
                             </View>
                         </View>
 
                         {/* Watering Card */}
-                        <View className="w-44 h-56 bg-blue-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-lg shadow-blue-500/40">
+                        <View className="w-44 h-56 bg-blue-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
                             <View className="absolute -right-4 -bottom-4 opacity-20 transform -rotate-12">
                                 <Droplets size={120} color="white" />
                             </View>
-
                             <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
                                 <Droplets size={24} color="white" />
                             </View>
-
                             <View>
-                                <Text className="font-bold text-white text-lg mb-2">{t('watering')}</Text>
-                                <Text className="text-blue-50 text-xs font-medium leading-5">
-                                    {t('wateringTip')}
-                                </Text>
+                                <Text className="font-bold text-white text-lg mb-2">Watering</Text>
+                                <Text className="text-blue-50 text-xs font-medium leading-5">Check soil moisture before watering to avoid rot.</Text>
                             </View>
                         </View>
 
                         {/* Temp Card */}
-                        <View className="w-44 h-56 bg-red-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-lg shadow-red-500/40">
+                        <View className="w-44 h-56 bg-red-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
                             <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-6">
                                 <Thermometer size={120} color="white" />
                             </View>
-
                             <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
                                 <Thermometer size={24} color="white" />
                             </View>
-
                             <View>
-                                <Text className="font-bold text-white text-lg mb-2">{t('temp')}</Text>
-                                <Text className="text-red-50 text-xs font-medium leading-5">
-                                    {t('tempTip')}
-                                </Text>
+                                <Text className="font-bold text-white text-lg mb-2">Temperature</Text>
+                                <Text className="text-red-50 text-xs font-medium leading-5">Keep plants away from cold drafts and heaters.</Text>
+                            </View>
+                        </View>
+
+                        {/* Humidity Card */}
+                        <View className="w-44 h-56 bg-cyan-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-12">
+                                <CloudRain size={120} color="white" />
+                            </View>
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <CloudRain size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">Humidity</Text>
+                                <Text className="text-cyan-50 text-xs font-medium leading-5">Tropical plants thrive in 40-60% humidity.</Text>
+                            </View>
+                        </View>
+
+                        {/* Soil Card */}
+                        <View className="w-44 h-56 bg-stone-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform -rotate-6">
+                                <Layers size={120} color="white" />
+                            </View>
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Layers size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">Soil</Text>
+                                <Text className="text-stone-50 text-xs font-medium leading-5">Use well-draining potting mix for best results.</Text>
+                            </View>
+                        </View>
+
+                        {/* Fertilizer Card */}
+                        <View className="w-44 h-56 bg-green-600 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-45">
+                                <Sprout size={120} color="white" />
+                            </View>
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Sprout size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">Fertilizer</Text>
+                                <Text className="text-green-50 text-xs font-medium leading-5">Feed monthly during spring and summer.</Text>
+                            </View>
+                        </View>
+
+                        {/* Pruning Card */}
+                        <View className="w-44 h-56 bg-teal-600 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform -rotate-45">
+                                <Scissors size={120} color="white" />
+                            </View>
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Scissors size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">Pruning</Text>
+                                <Text className="text-teal-50 text-xs font-medium leading-5">Trim dead leaves to encourage new growth.</Text>
+                            </View>
+                        </View>
+
+                        {/* Pests Card */}
+                        <View className="w-44 h-56 bg-rose-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-12">
+                                <Bug size={120} color="white" />
+                            </View>
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Bug size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">Pests</Text>
+                                <Text className="text-rose-50 text-xs font-medium leading-5">Check undersides of leaves for bugs regularly.</Text>
+                            </View>
+                        </View>
+
+                        {/* Repotting Card */}
+                        <View className="w-44 h-56 bg-indigo-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-180">
+                                <RefreshCcw size={120} color="white" />
+                            </View>
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <RefreshCcw size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">Repotting</Text>
+                                <Text className="text-indigo-50 text-xs font-medium leading-5">Repot every 1-2 years when roots crowd.</Text>
+                            </View>
+                        </View>
+
+                        {/* Airflow Card */}
+                        <View className="w-44 h-56 bg-sky-500 rounded-[32px] p-6 justify-between relative overflow-hidden shadow-sm">
+                            <View className="absolute -right-4 -bottom-4 opacity-20 transform rotate-6">
+                                <Wind size={120} color="white" />
+                            </View>
+                            <View className="bg-white/20 w-12 h-12 rounded-full items-center justify-center backdrop-blur-md">
+                                <Wind size={24} color="white" />
+                            </View>
+                            <View>
+                                <Text className="font-bold text-white text-lg mb-2">Airflow</Text>
+                                <Text className="text-sky-50 text-xs font-medium leading-5">Ensure good air circulation to prevent mold.</Text>
                             </View>
                         </View>
                     </ScrollView>
