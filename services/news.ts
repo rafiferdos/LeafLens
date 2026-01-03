@@ -1,5 +1,3 @@
-import { Language } from '@/lib/language';
-
 export interface Article {
     id: string;
     source: {
@@ -19,10 +17,15 @@ export interface Article {
 const NEWSDATA_API_KEY = 'pub_0b8bbc25434548d8a777ec2b7bf60273';
 const NEWSDATA_API_URL = 'https://newsdata.io/api/1/latest';
 
-// Available categories
+// Filter types
 export type NewsCategory = 'food' | 'health' | 'lifestyle';
+export type NewsLanguage = 'en' | 'bn' | 'hi' | 'ur';
+export type NewsCountry = 'in' | 'pk' | 'bd';
 
-// Cache with pagination support per category
+// Cache key for category + language + country combination
+type CacheKey = `${NewsCategory}_${NewsLanguage}_${NewsCountry}`;
+
+// Cache with pagination support
 interface CacheData {
     articles: Article[];
     nextPage: string | null;
@@ -30,13 +33,18 @@ interface CacheData {
     isLoading: boolean;
 }
 
-const cache: Record<NewsCategory, CacheData> = {
-    food: { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false },
-    health: { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false },
-    lifestyle: { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false },
-};
+const cache: Record<string, CacheData> = {};
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Get or create cache for a specific combination
+const getCache = (category: NewsCategory, language: NewsLanguage, country: NewsCountry): CacheData => {
+    const key: CacheKey = `${category}_${language}_${country}`;
+    if (!cache[key]) {
+        cache[key] = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
+    }
+    return cache[key];
+};
 
 // Helper to deduplicate articles by ID
 const deduplicateById = (articles: Article[]): Article[] => {
@@ -50,12 +58,17 @@ const deduplicateById = (articles: Article[]): Article[] => {
     });
 };
 
-// Build API URL with category filter
-const buildApiUrl = (category: NewsCategory, nextPage?: string | null): string => {
-    // Using user's configuration but with single category for better results
+// Build API URL with filters
+// URL format: https://newsdata.io/api/1/latest?apikey=...&country=X&language=X&category=X&image=1
+const buildApiUrl = (
+    category: NewsCategory,
+    language: NewsLanguage,
+    country: NewsCountry,
+    nextPage?: string | null
+): string => {
     let url = `${NEWSDATA_API_URL}?apikey=${NEWSDATA_API_KEY}` +
-        `&country=in,pk,bd` +
-        `&language=hi,ur,bn,en` +
+        `&country=${country}` +
+        `&language=${language}` +
         `&category=${category}` +
         `&image=1`;
 
@@ -66,39 +79,43 @@ const buildApiUrl = (category: NewsCategory, nextPage?: string | null): string =
     return url;
 };
 
-// Fetch initial articles for a category
-export const fetchNews = async (category: NewsCategory = 'food'): Promise<Article[]> => {
+// Fetch initial articles
+export const fetchNews = async (
+    category: NewsCategory = 'food',
+    language: NewsLanguage = 'en',
+    country: NewsCountry = 'in'
+): Promise<Article[]> => {
     try {
-        const categoryCache = cache[category];
+        const cacheData = getCache(category, language, country);
         const now = Date.now();
 
         // Return cached data if valid
-        if (categoryCache.articles.length > 0 && now - categoryCache.lastFetchTime < CACHE_DURATION) {
-            console.log(`Returning ${categoryCache.articles.length} cached articles for ${category}`);
-            return categoryCache.articles;
+        if (cacheData.articles.length > 0 && now - cacheData.lastFetchTime < CACHE_DURATION) {
+            console.log(`Returning ${cacheData.articles.length} cached articles for ${category}/${language}/${country}`);
+            return cacheData.articles;
         }
 
-        if (categoryCache.isLoading) {
-            return categoryCache.articles;
+        if (cacheData.isLoading) {
+            return cacheData.articles;
         }
 
-        categoryCache.isLoading = true;
-        console.log(`Fetching initial ${category} news...`);
+        cacheData.isLoading = true;
+        console.log(`Fetching ${category}/${language}/${country} news...`);
 
-        const url = buildApiUrl(category);
+        const url = buildApiUrl(category, language, country);
         console.log('API URL:', url);
 
         const response = await fetch(url);
         const data = await response.json();
 
-        categoryCache.isLoading = false;
+        cacheData.isLoading = false;
 
         if (data.status !== 'success' || !data.results) {
             console.error('NewsData.io API error:', data);
             return [];
         }
 
-        console.log(`Received ${data.results.length} articles for ${category}, nextPage: ${data.nextPage}`);
+        console.log(`Received ${data.results.length} articles, nextPage: ${data.nextPage}`);
 
         // Map API response to our Article interface
         const newArticles: Article[] = data.results
@@ -119,48 +136,53 @@ export const fetchNews = async (category: NewsCategory = 'food'): Promise<Articl
             }));
 
         // Update cache
-        categoryCache.articles = deduplicateById(newArticles);
-        categoryCache.nextPage = data.nextPage || null;
-        categoryCache.lastFetchTime = Date.now();
+        cacheData.articles = deduplicateById(newArticles);
+        cacheData.nextPage = data.nextPage || null;
+        cacheData.lastFetchTime = Date.now();
 
-        return categoryCache.articles;
+        return cacheData.articles;
 
     } catch (error) {
         console.error('Error fetching news:', error);
-        cache[category].isLoading = false;
+        const cacheData = getCache(category, language, country);
+        cacheData.isLoading = false;
         return [];
     }
 };
 
 // Fetch more articles (next page) - for infinite scroll
-export const fetchMoreNews = async (category: NewsCategory = 'food'): Promise<Article[]> => {
+export const fetchMoreNews = async (
+    category: NewsCategory = 'food',
+    language: NewsLanguage = 'en',
+    country: NewsCountry = 'in'
+): Promise<Article[]> => {
     try {
-        const categoryCache = cache[category];
+        const cacheData = getCache(category, language, country);
 
         // No more pages available
-        if (!categoryCache.nextPage) {
+        if (!cacheData.nextPage) {
             console.log('No more pages available');
-            return categoryCache.articles;
+            return cacheData.articles;
         }
 
-        if (categoryCache.isLoading) {
-            return categoryCache.articles;
+        if (cacheData.isLoading) {
+            return cacheData.articles;
         }
 
-        categoryCache.isLoading = true;
-        console.log(`Fetching more ${category} news, page: ${categoryCache.nextPage}...`);
+        cacheData.isLoading = true;
+        console.log(`Fetching more ${category}/${language}/${country} news, page: ${cacheData.nextPage}...`);
 
-        const url = buildApiUrl(category, categoryCache.nextPage);
+        const url = buildApiUrl(category, language, country, cacheData.nextPage);
         console.log('API URL:', url);
 
         const response = await fetch(url);
         const data = await response.json();
 
-        categoryCache.isLoading = false;
+        cacheData.isLoading = false;
 
         if (data.status !== 'success' || !data.results) {
             console.error('NewsData.io API error:', data);
-            return categoryCache.articles;
+            return cacheData.articles;
         }
 
         console.log(`Received ${data.results.length} more articles, nextPage: ${data.nextPage}`);
@@ -184,43 +206,46 @@ export const fetchMoreNews = async (category: NewsCategory = 'food'): Promise<Ar
             }));
 
         // Append to cache
-        categoryCache.articles = deduplicateById([...categoryCache.articles, ...newArticles]);
-        categoryCache.nextPage = data.nextPage || null;
+        cacheData.articles = deduplicateById([...cacheData.articles, ...newArticles]);
+        cacheData.nextPage = data.nextPage || null;
 
-        return categoryCache.articles;
+        return cacheData.articles;
 
     } catch (error) {
         console.error('Error fetching more news:', error);
-        cache[category].isLoading = false;
-        return cache[category].articles;
+        return getCache(category, language, country).articles;
     }
 };
 
 // Check if more pages are available
-export const hasMoreNews = (category: NewsCategory = 'food'): boolean => {
-    return cache[category].nextPage !== null;
+export const hasMoreNews = (
+    category: NewsCategory = 'food',
+    language: NewsLanguage = 'en',
+    country: NewsCountry = 'in'
+): boolean => {
+    return getCache(category, language, country).nextPage !== null;
 };
 
-// Check if currently loading
-export const isLoadingNews = (category: NewsCategory = 'food'): boolean => {
-    return cache[category].isLoading;
-};
-
-// Clear cache for a specific category
-export const clearNewsCache = (category?: NewsCategory) => {
-    if (category) {
-        cache[category] = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
+// Clear cache
+export const clearNewsCache = (
+    category?: NewsCategory,
+    language?: NewsLanguage,
+    country?: NewsCountry
+) => {
+    if (category && language && country) {
+        const key: CacheKey = `${category}_${language}_${country}`;
+        cache[key] = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
     } else {
-        cache.food = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
-        cache.health = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
-        cache.lifestyle = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
+        Object.keys(cache).forEach(key => {
+            cache[key] = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
+        });
     }
 };
 
-// Get article by ID from any category
+// Get article by ID from any cache
 export const getArticleById = (id: string): Article | undefined => {
-    for (const cat of Object.keys(cache) as NewsCategory[]) {
-        const article = cache[cat].articles.find(a => a.id === id);
+    for (const key of Object.keys(cache)) {
+        const article = cache[key].articles.find(a => a.id === id);
         if (article) return article;
     }
     return undefined;
