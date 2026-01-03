@@ -57,6 +57,7 @@ export default function MyGardenScreen() {
 
     // Modal State
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [editingPlantId, setEditingPlantId] = useState<string | null>(null);
     const [newPlantName, setNewPlantName] = useState('');
     const [newPlantType, setNewPlantType] = useState('');
     const [newPlantImage, setNewPlantImage] = useState<string | null>(null);
@@ -96,33 +97,7 @@ export default function MyGardenScreen() {
         }
     };
 
-    const handleSavePlant = async () => {
-        if (!newPlantName.trim()) {
-            Alert.alert("Name Required", "Please give your plant a name!");
-            return;
-        }
-
-        const newPlant: GardenPlant = {
-            id: Date.now().toString(),
-            name: newPlantName,
-            type: newPlantType || 'Indoor Plant',
-            dateAdded: new Date().toISOString(),
-            imageUri: newPlantImage || undefined,
-            wateringFrequency,
-            sunlight,
-            difficulty,
-            petSafe,
-            location,
-            notes,
-            soilType,
-            potSize,
-        };
-
-        const updatedPlants = [newPlant, ...plants];
-        setPlants(updatedPlants);
-        await AsyncStorage.setItem('myGarden', JSON.stringify(updatedPlants));
-
-        // Reset and close
+    const resetForm = () => {
         setNewPlantName('');
         setNewPlantType('');
         setNewPlantImage(null);
@@ -134,7 +109,71 @@ export default function MyGardenScreen() {
         setNotes('');
         setSoilType('');
         setPotSize('');
+        setEditingPlantId(null);
         setIsModalVisible(false);
+    };
+
+    const handleEditPlant = (plant: GardenPlant) => {
+        setEditingPlantId(plant.id);
+        setNewPlantName(plant.name);
+        setNewPlantType(plant.type);
+        setNewPlantImage(plant.imageUri ?? null);
+        if (plant.wateringFrequency) setWateringFrequency(plant.wateringFrequency);
+        if (plant.sunlight) setSunlight(plant.sunlight);
+        if (plant.difficulty) setDifficulty(plant.difficulty);
+        setPetSafe(plant.petSafe ?? true);
+        setLocation(plant.location ?? '');
+        setNotes(plant.notes ?? '');
+        setSoilType(plant.soilType ?? '');
+        setPotSize(plant.potSize ?? '');
+        setIsModalVisible(true);
+    };
+
+    const handleSavePlant = async () => {
+        if (!newPlantName.trim()) {
+            Alert.alert("Name Required", "Please give your plant a name!");
+            return;
+        }
+
+        let updatedPlants: GardenPlant[];
+
+        if (editingPlantId) {
+            updatedPlants = plants.map(p => p.id === editingPlantId ? {
+                ...p,
+                name: newPlantName,
+                type: newPlantType || 'Indoor Plant',
+                imageUri: newPlantImage || undefined,
+                wateringFrequency,
+                sunlight,
+                difficulty,
+                petSafe,
+                location,
+                notes,
+                soilType,
+                potSize,
+            } : p);
+        } else {
+            const newPlant: GardenPlant = {
+                id: Date.now().toString(),
+                name: newPlantName,
+                type: newPlantType || 'Indoor Plant',
+                dateAdded: new Date().toISOString(),
+                imageUri: newPlantImage || undefined,
+                wateringFrequency,
+                sunlight,
+                difficulty,
+                petSafe,
+                location,
+                notes,
+                soilType,
+                potSize,
+            };
+            updatedPlants = [newPlant, ...plants];
+        }
+
+        setPlants(updatedPlants);
+        await AsyncStorage.setItem('myGarden', JSON.stringify(updatedPlants));
+        resetForm();
     };
 
     const confirmDeletePlant = async () => {
@@ -170,7 +209,10 @@ export default function MyGardenScreen() {
                 </TouchableOpacity>
                 <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold">My Garden</Text>
                 <TouchableOpacity
-                    onPress={() => setIsModalVisible(true)}
+                    onPress={() => {
+                        resetForm();
+                        setIsModalVisible(true);
+                    }}
                     className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center border border-primary/20"
                 >
                     <Plus size={24} color={theme.colors.primary} />
@@ -198,7 +240,10 @@ export default function MyGardenScreen() {
                         </Text>
 
                         <TouchableOpacity
-                            onPress={() => setIsModalVisible(true)}
+                            onPress={() => {
+                                resetForm();
+                                setIsModalVisible(true);
+                            }}
                             className="bg-primary px-8 py-4 rounded-full shadow-lg shadow-primary/30 mt-4 flex-row items-center gap-2"
                             activeOpacity={0.9}
                         >
@@ -216,76 +261,83 @@ export default function MyGardenScreen() {
                     renderItem={({ item, index }) => (
                         <Animated.View
                             entering={FadeInDown.delay(index * 100).springify()}
-                            className="bg-card mb-4 rounded-[20px] p-2.5 border border-border shadow-sm flex-row gap-3 overflow-hidden"
+                            className="bg-card mb-4 rounded-[20px] shadow-sm overflow-hidden border border-border"
                         >
-                            <View className="w-24 h-32 rounded-2xl bg-muted items-center justify-center overflow-hidden border border-border/50 shadow-sm relative">
-                                {item.imageUri ? (
-                                    <Image source={{ uri: item.imageUri }} className="w-full h-full" resizeMode="cover" />
-                                ) : (
-                                    <View className="w-full h-full bg-green-50 dark:bg-green-900/10 items-center justify-center">
-                                        <Sprout size={40} color={colors.primary} />
-                                    </View>
-                                )}
-                                {item.petSafe && (
-                                    <View className="absolute top-2 left-2 bg-green-500/90 w-6 h-6 rounded-full items-center justify-center shadow-sm">
-                                        <Shield size={12} color="white" />
-                                    </View>
-                                )}
-                            </View>
-
-                            <View className="flex-1 py-0.5 justify-between h-32">
-                                <View>
-                                    <View className="flex-row justify-between items-start">
-                                        <View className="flex-1 mr-2">
-                                            <Text className="font-bold text-lg leading-tight text-foreground" numberOfLines={1}>{item.name}</Text>
-                                            <Text className="text-primary font-bold text-[10px] uppercase tracking-wider">{item.type}</Text>
+                            <TouchableOpacity
+                                activeOpacity={0.9}
+                                onPress={() => handleEditPlant(item)}
+                                className="flex-row gap-3 p-2.5"
+                            >
+                                <View className="w-24 h-32 rounded-2xl bg-muted items-center justify-center overflow-hidden border border-border/50 shadow-sm relative">
+                                    {item.imageUri ? (
+                                        <Image source={{ uri: item.imageUri }} className="w-full h-full" resizeMode="cover" />
+                                    ) : (
+                                        <View className="w-full h-full bg-green-50 dark:bg-green-900/10 items-center justify-center">
+                                            <Sprout size={40} color={colors.primary} />
                                         </View>
-                                        <TouchableOpacity
-                                            onPress={() => deletePlant(item.id)}
-                                            className="w-7 h-7 bg-destructive/5 rounded-full items-center justify-center -mt-1 -mr-1"
-                                        >
-                                            <Trash2 size={14} color={colors.destructive} />
-                                        </TouchableOpacity>
-                                    </View>
-
-                                    <View className="flex-row flex-wrap gap-1.5 mt-2">
-                                        {item.wateringFrequency && (
-                                            <View className="flex-row items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/30">
-                                                <Droplets size={10} color="#3b82f6" />
-                                                <Text className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">{item.wateringFrequency}</Text>
-                                            </View>
-                                        )}
-                                        {item.sunlight && (
-                                            <View className="flex-row items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-md border border-orange-100 dark:border-orange-900/30">
-                                                <Sun size={10} color="#f97316" />
-                                                <Text className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">{item.sunlight}</Text>
-                                            </View>
-                                        )}
-                                        {item.location && (
-                                            <View className="flex-row items-center gap-1 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded-md border border-purple-100 dark:border-purple-900/30">
-                                                <MapPin size={10} color="#9333ea" />
-                                                <Text className="text-[10px] font-semibold text-purple-600 dark:text-purple-400" numberOfLines={1}>{item.location}</Text>
-                                            </View>
-                                        )}
-                                    </View>
+                                    )}
+                                    {item.petSafe && (
+                                        <View className="absolute top-2 left-2 bg-green-500/90 w-6 h-6 rounded-full items-center justify-center shadow-sm">
+                                            <Shield size={12} color="white" />
+                                        </View>
+                                    )}
                                 </View>
 
-                                <View className="flex-row justify-between items-end">
-                                    <View className="flex-row items-center gap-1">
-                                        {item.difficulty && (
-                                            <Text className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${item.difficulty === 'Easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200' :
+                                <View className="flex-1 py-0.5 justify-between h-32">
+                                    <View>
+                                        <View className="flex-row justify-between items-start">
+                                            <View className="flex-1 mr-2">
+                                                <Text className="font-bold text-lg leading-tight text-foreground" numberOfLines={1}>{item.name}</Text>
+                                                <Text className="text-primary font-bold text-[10px] uppercase tracking-wider">{item.type}</Text>
+                                            </View>
+                                            <TouchableOpacity
+                                                onPress={() => deletePlant(item.id)}
+                                                className="w-7 h-7 bg-destructive/5 rounded-full items-center justify-center -mt-1 -mr-1"
+                                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                            >
+                                                <Trash2 size={14} color={colors.destructive} />
+                                            </TouchableOpacity>
+                                        </View>
+
+                                        <View className="flex-row flex-wrap gap-1.5 mt-2">
+                                            {item.wateringFrequency && (
+                                                <View className="flex-row items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/30">
+                                                    <Droplets size={10} color="#3b82f6" />
+                                                    <Text className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">{item.wateringFrequency}</Text>
+                                                </View>
+                                            )}
+                                            {item.sunlight && (
+                                                <View className="flex-row items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-md border border-orange-100 dark:border-orange-900/30">
+                                                    <Sun size={10} color="#f97316" />
+                                                    <Text className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">{item.sunlight}</Text>
+                                                </View>
+                                            )}
+                                            {item.location && (
+                                                <View className="flex-row items-center gap-1 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded-md border border-purple-100 dark:border-purple-900/30">
+                                                    <MapPin size={10} color="#9333ea" />
+                                                    <Text className="text-[10px] font-semibold text-purple-600 dark:text-purple-400" numberOfLines={1}>{item.location}</Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </View>
+
+                                    <View className="flex-row justify-between items-end">
+                                        <View className="flex-row items-center gap-1">
+                                            {item.difficulty && (
+                                                <Text className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${item.difficulty === 'Easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200' :
                                                     item.difficulty === 'Medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200' :
                                                         'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200'
-                                                }`}>
-                                                {item.difficulty}
-                                            </Text>
-                                        )}
+                                                    }`}>
+                                                    {item.difficulty}
+                                                </Text>
+                                            )}
+                                        </View>
+                                        <Text className="text-muted-foreground/40 text-[9px] font-medium">
+                                            Added {new Date(item.dateAdded).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                        </Text>
                                     </View>
-                                    <Text className="text-muted-foreground/40 text-[9px] font-medium">
-                                        Added {new Date(item.dateAdded).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                    </Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         </Animated.View>
                     )}
                 />
@@ -295,9 +347,9 @@ export default function MyGardenScreen() {
             <Dialog open={isModalVisible} onOpenChange={setIsModalVisible}>
                 <DialogContent className='sm:max-w-[425px] bg-background'>
                     <DialogHeader>
-                        <DialogTitle>New Plant Baby</DialogTitle>
+                        <DialogTitle>{editingPlantId ? 'Edit Plant Details' : 'New Plant Baby'}</DialogTitle>
                         <DialogDescription>
-                            Add a new plant to your collection.
+                            {editingPlantId ? 'Update your plant details below.' : 'Add a new plant to your collection.'}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -475,8 +527,11 @@ export default function MyGardenScreen() {
                     </ScrollView>
 
                     <DialogFooter>
-                        <Button onPress={handleSavePlant} className="w-full">
-                            <Text className="text-primary-foreground font-bold">Welcome Home</Text>
+                        <Button onPress={handleSavePlant} className="w-full bg-primary rounded-xl h-12 flex-row gap-2">
+                            {editingPlantId ? <Check size={18} color="white" /> : <Plus size={18} color="white" />}
+                            <Text className="font-bold text-white text-base">
+                                {editingPlantId ? 'Update Plant' : 'Add Plant'}
+                            </Text>
                         </Button>
                     </DialogFooter>
                 </DialogContent>
