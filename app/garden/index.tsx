@@ -354,9 +354,9 @@ export default function MyGardenScreen() {
                     </DialogHeader>
 
                     <ScrollView
-                        className="max-h-[600px]"
+                        className="max-h-[450px]"
                         showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 40 }}
+                        contentContainerStyle={{ paddingBottom: 0 }}
                         keyboardShouldPersistTaps="handled"
                     >
                         <View className="gap-6 py-4">
@@ -393,13 +393,13 @@ export default function MyGardenScreen() {
                                         <Select value={{ value: newPlantType, label: newPlantType }} onValueChange={(option) => {
                                             if (option) setNewPlantType(option.value);
                                         }}>
-                                            <SelectTrigger className="w-full h-12 bg-secondary/30 px-3 border-border rounded-xl justify-center">
+                                            <SelectTrigger className="w-full h-12 bg-secondary/30 border-border rounded-xl justify-center">
                                                 <SelectValue
-                                                    className="text-foreground text-sm native:text-base font-bold"
+                                                    className="text-muted-foreground text-sm font-bold"
                                                     placeholder="Select Type"
                                                 />
                                             </SelectTrigger>
-                                            <SelectContent className="w-[200px]">
+                                            <SelectContent className="max-w-26">
                                                 <SelectGroup>
                                                     <SelectLabel>Plant Types</SelectLabel>
                                                     {['Indoor', 'Outdoor', 'Succulent', 'Vegetable', 'Herb', 'Flower', 'Tree', 'Cactus', 'Fern', 'Orchid'].map((type) => (
