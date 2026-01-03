@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { Text } from '@/components/ui/text';
-import { ArrowLeft, Plus, Sprout, Trash2, Shield, Droplets, Sun, Info, MapPin } from 'lucide-react-native';
+import { ArrowLeft, Plus, Sprout, Trash2, Shield, Droplets, Sun, Info, MapPin, Layers } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { NAV_THEME, THEME } from '@/lib/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -209,7 +209,7 @@ export default function MyGardenScreen() {
                                     )}
                                 </View>
 
-                                <View className="flex-1 py-0.5 justify-between h-32">
+                                <View className="flex-1 py-0.5 justify-between min-h-[8rem]">
                                     <View>
                                         <View className="flex-row justify-between items-start">
                                             <View className="flex-1 mr-2">
@@ -238,6 +238,12 @@ export default function MyGardenScreen() {
                                                     <Text className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">{item.sunlight}</Text>
                                                 </View>
                                             )}
+                                            {item.soilType && (
+                                                <View className="flex-row items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-md border border-amber-100 dark:border-amber-900/30">
+                                                    <Layers size={10} color="#d97706" />
+                                                    <Text className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">{item.soilType}</Text>
+                                                </View>
+                                            )}
                                             {item.location && (
                                                 <View className="flex-row items-center gap-1 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded-md border border-purple-100 dark:border-purple-900/30">
                                                     <MapPin size={10} color="#9333ea" />
@@ -245,9 +251,15 @@ export default function MyGardenScreen() {
                                                 </View>
                                             )}
                                         </View>
+
+                                        {item.notes && (
+                                            <Text className="text-muted-foreground text-xs mt-2 italic leading-relaxed" numberOfLines={3}>
+                                                "{item.notes}"
+                                            </Text>
+                                        )}
                                     </View>
 
-                                    <View className="flex-row justify-between items-end">
+                                    <View className="flex-row justify-between items-end mt-2">
                                         <View className="flex-row items-center gap-1">
                                             {item.difficulty && (
                                                 <Text className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${item.difficulty === 'Easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200' :
