@@ -14,10 +14,9 @@ import { useRouter } from 'expo-router';
 
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { diseaseDatabase, DiseaseData } from '@/lib/disease-data';
+import { config } from '@/lib/config';
 
-// IMPORTANT: For Android Emulator, use 'http://10.0.2.2:8000'
-// For Physical Device, use your computer's IP address (e.g., 'http://192.168.1.5:8000')
-const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
+const API_URL = config.apiUrl;
 
 export default function HomeScreen() {
     const router = useRouter();
