@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Image, ScrollView, ActivityIndicator, Alert, Platform, TouchableOpacity, Dimensions, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Image as ImageIcon, ScanLine, Leaf, RefreshCcw, ArrowRight, Sun, Droplets, Thermometer, Search, AlertCircle, CheckCircle, Smartphone, Globe, User, ChevronRight, Stethoscope, Sprout, Pill, CloudRain, Layers, Scissors, Bug, Wind } from 'lucide-react-native';
+import { Camera, Image as ImageIcon, ScanLine, Leaf, RefreshCcw, ArrowRight, Sun, Droplets, Thermometer, Search, AlertCircle, CheckCircle, Smartphone, Globe, User, ChevronRight, Stethoscope, Sprout, Pill, CloudRain, Layers, Scissors, Bug, Wind, Download, Cpu } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
@@ -14,9 +14,9 @@ import { useRouter } from 'expo-router';
 
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { diseaseDatabase, DiseaseData } from '@/lib/disease-data';
-import { config } from '@/lib/config';
+import { useModelManager, predictDisease } from '@/services/model-manager';
 
-const API_URL = config.apiUrl;
+// On-device inference - no backend required!
 
 export default function HomeScreen() {
     const router = useRouter();
@@ -29,6 +29,9 @@ export default function HomeScreen() {
 
     const [userName, setUserName] = useState<string | null>(null);
     const [userPhoto, setUserPhoto] = useState<string | null>(null);
+
+    // On-device AI model - auto-downloads and initializes
+    const modelStatus = useModelManager();
 
     // Load profile data on mount and when theme changes
     useEffect(() => {
@@ -73,34 +76,21 @@ export default function HomeScreen() {
 
     const handleAnalyze = async () => {
         if (!selectedImage) return;
+        if (!modelStatus.isReady) {
+            Alert.alert('Model Not Ready', 'Please wait for the AI model to finish downloading.');
+            return;
+        }
 
         setIsAnalyzing(true);
         try {
-            const imageUri = Platform.OS === 'android' ? selectedImage : selectedImage.replace('file://', '');
-            const formData = new FormData();
-            formData.append('file', {
-                uri: imageUri,
-                name: 'photo.jpg',
-                type: 'image/jpeg',
-            } as any);
-
-            const response = await fetch(`${API_URL}/predict`, {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error('Analysis failed: ' + errorText);
-            }
-
-            const data = await response.json();
+            // Run on-device inference - no server needed!
+            const data = await predictDisease(selectedImage);
             setResult(data);
             saveToHistory(data, selectedImage);
 
         } catch (error) {
             console.error('Analysis error:', error);
-            Alert.alert('Connection Error', 'Could not connect to analysis server.\n\nRunning on device? Change API_URL to your PC IP.');
+            Alert.alert('Analysis Error', 'Failed to analyze the image. Please try again.');
         } finally {
             setIsAnalyzing(false);
         }
