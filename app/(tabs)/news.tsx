@@ -1,8 +1,8 @@
-import { View, FlatList, TouchableOpacity, Image, RefreshControl } from 'react-native';
+import { View, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
-import { fetchEggplantNews, clearNewsCache, hasMoreNews, Article } from '@/services/news';
+import { fetchNews, fetchMoreNews, clearNewsCache, hasMoreNews, Article } from '@/services/news';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { NAV_THEME, THEME } from '@/lib/theme';
@@ -19,9 +19,8 @@ import {
 export default function NewsScreen() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
     const [animationKey, setAnimationKey] = useState(0);
     const [showLanguageDialog, setShowLanguageDialog] = useState(false);
 
@@ -36,49 +35,36 @@ export default function NewsScreen() {
         }, [])
     );
 
-    const loadNews = async (pageNum: number, shouldRefresh: boolean = false) => {
-        if (pageNum === 1) setLoading(true);
-
-        // Pass page, limit, and current language
-        const newArticles = await fetchEggplantNews(pageNum, 10, language);
-
-        if (shouldRefresh) {
-            setArticles(newArticles);
-        } else {
-            // Append new articles, avoiding duplicates by ID
-            setArticles(prev => {
-                const existingIds = new Set(prev.map(a => a.id));
-                const uniqueNew = newArticles.filter(a => !existingIds.has(a.id));
-                return [...prev, ...uniqueNew];
-            });
-        }
-
-        // Check if more pages available
-        setHasMore(hasMoreNews(language) && newArticles.length > 0);
+    // Initial load
+    const loadInitialNews = async () => {
+        setLoading(true);
+        const news = await fetchNews(language);
+        setArticles(news);
         setLoading(false);
     };
 
+    // Load more (infinite scroll)
+    const loadMoreNews = async () => {
+        if (loadingMore || !hasMoreNews(language)) return;
+
+        setLoadingMore(true);
+        const allArticles = await fetchMoreNews(language);
+        setArticles(allArticles);
+        setLoadingMore(false);
+    };
+
+    // Pull to refresh
     const onRefresh = async () => {
         setRefreshing(true);
-        setPage(1);
         clearNewsCache(language);
-        await loadNews(1, true);
+        const news = await fetchNews(language);
+        setArticles(news);
         setRefreshing(false);
     };
 
-    const onLoadMore = () => {
-        if (!loading && hasMore) {
-            const nextPage = page + 1;
-            setPage(nextPage);
-            loadNews(nextPage);
-        }
-    };
-
-    // Reload news when language changes
+    // Reload when language changes
     useEffect(() => {
-        setArticles([]);
-        setPage(1);
-        loadNews(1, true);
+        loadInitialNews();
     }, [language]);
 
     const handleLanguageChange = (langCode: string) => {
@@ -88,7 +74,7 @@ export default function NewsScreen() {
 
     const renderItem = ({ item, index }: { item: Article; index: number }) => (
         <Animated.View
-            entering={FadeInDown.delay(index * 100).springify()}
+            entering={FadeInDown.delay(Math.min(index * 50, 300)).springify()}
             className="mb-4"
         >
             <TouchableOpacity
@@ -141,6 +127,25 @@ export default function NewsScreen() {
         </Animated.View>
     );
 
+    const ListFooter = () => {
+        if (loadingMore) {
+            return (
+                <View className="py-6 items-center">
+                    <ActivityIndicator size="small" color={theme.colors.primary} />
+                    <Text className="text-muted-foreground text-sm mt-2">{t('loadingMore')}</Text>
+                </View>
+            );
+        }
+        if (!hasMoreNews(language) && articles.length > 0) {
+            return (
+                <View className="py-6 items-center">
+                    <Text className="text-muted-foreground text-sm">No more articles</Text>
+                </View>
+            );
+        }
+        return null;
+    };
+
     return (
         <SafeAreaView className="flex-1 bg-background" edges={['top']}>
             <View className="px-6 pt-2 pb-4">
@@ -177,33 +182,37 @@ export default function NewsScreen() {
                 </View>
             </View>
 
-            <FlatList
-                key={`${animationKey}-${language}`}
-                data={articles}
-                keyExtractor={(item) => item.id}
-                renderItem={renderItem}
-                contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
-                showsVerticalScrollIndicator={false}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
-                }
-                onEndReached={onLoadMore}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={
-                    loading && articles.length > 0 ? (
-                        <View className="py-4">
-                            <Text className="text-center text-muted-foreground text-sm">{t('loadingMore')}</Text>
-                        </View>
-                    ) : null
-                }
-                ListEmptyComponent={
-                    !loading ? (
+            {loading ? (
+                <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <Text className="text-muted-foreground mt-4">{t('loading')}</Text>
+                </View>
+            ) : (
+                <FlatList
+                    key={`${animationKey}-${language}`}
+                    data={articles}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={theme.colors.primary}
+                        />
+                    }
+                    onEndReached={loadMoreNews}
+                    onEndReachedThreshold={0.3}
+                    ListFooterComponent={<ListFooter />}
+                    ListEmptyComponent={
                         <View className="items-center justify-center py-20">
+                            <Text className="text-4xl mb-4">📰</Text>
                             <Text className="text-muted-foreground text-center">{t('noNewsFound')}</Text>
                         </View>
-                    ) : null
-                }
-            />
+                    }
+                />
+            )}
 
             {/* Language Selector Dialog */}
             <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>

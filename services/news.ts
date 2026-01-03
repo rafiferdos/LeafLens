@@ -15,35 +15,31 @@ export interface Article {
     content: string | null;
 }
 
-// NewsData.io API - Using /latest endpoint with regional filters
+// NewsData.io API - Using user's exact configuration
 const NEWSDATA_API_KEY = 'pub_0b8bbc25434548d8a777ec2b7bf60273';
 const NEWSDATA_API_URL = 'https://newsdata.io/api/1/latest';
 
-// Search terms - eggplant only in different languages
-const EGGPLANT_TERMS: Record<Language, string> = {
-    en: 'eggplant OR brinjal OR aubergine',
-    bn: 'বেগুন',
-    hi: 'बैंगन OR baingan',
-    ur: 'بینگن OR baingan',
-};
+// User's configured API URL:
+// https://newsdata.io/api/1/latest?apikey=pub_0b8bbc25434548d8a777ec2b7bf60273&country=in,pk,bd&language=hi,ur,bn,en&category=food,health,lifestyle&image=1&video=1
 
-// Cache per language with pagination support
+// Cache with pagination support
 interface CacheData {
     articles: Article[];
     nextPage: string | null;
     lastFetchTime: number;
+    isLoading: boolean;
 }
 
-const cache: Record<Language, CacheData> = {
-    en: { articles: [], nextPage: null, lastFetchTime: 0 },
-    bn: { articles: [], nextPage: null, lastFetchTime: 0 },
-    hi: { articles: [], nextPage: null, lastFetchTime: 0 },
-    ur: { articles: [], nextPage: null, lastFetchTime: 0 },
+let cache: CacheData = {
+    articles: [],
+    nextPage: null,
+    lastFetchTime: 0,
+    isLoading: false
 };
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Helper to deduplicate articles by ID only (not title - show all sources)
+// Helper to deduplicate articles by ID
 const deduplicateById = (articles: Article[]): Article[] => {
     const seen = new Set<string>();
     return articles.filter(article => {
@@ -55,115 +51,173 @@ const deduplicateById = (articles: Article[]): Article[] => {
     });
 };
 
-export const fetchEggplantNews = async (
-    page: number = 1,
-    limit: number = 10,
-    language: Language = 'en'
-): Promise<Article[]> => {
+// Build API URL with user's exact configuration
+const buildApiUrl = (nextPage?: string | null): string => {
+    let url = `${NEWSDATA_API_URL}?apikey=${NEWSDATA_API_KEY}` +
+        `&country=in,pk,bd` +
+        `&language=hi,ur,bn,en` +
+        `&category=food,health,lifestyle` +
+        `&image=1` +
+        `&video=1`;
+
+    if (nextPage) {
+        url += `&page=${nextPage}`;
+    }
+
+    return url;
+};
+
+// Fetch initial articles (page 1)
+export const fetchNews = async (language?: Language): Promise<Article[]> => {
     try {
         const now = Date.now();
-        const langCache = cache[language];
 
-        // For page 1, check if cache is valid
-        if (page === 1 && langCache.articles.length > 0 && now - langCache.lastFetchTime < CACHE_DURATION) {
-            console.log(`Returning cached articles for ${language}`);
-            return langCache.articles.slice(0, limit);
+        // Return cached data if valid
+        if (cache.articles.length > 0 && now - cache.lastFetchTime < CACHE_DURATION) {
+            console.log(`Returning ${cache.articles.length} cached articles`);
+            return cache.articles;
         }
 
-        // For subsequent pages, check if we have enough cached data
-        const startIndex = (page - 1) * limit;
-        if (page > 1 && langCache.articles.length >= startIndex + limit) {
-            console.log(`Returning cached page ${page} for ${language}`);
-            return langCache.articles.slice(startIndex, startIndex + limit);
+        if (cache.isLoading) {
+            return cache.articles;
         }
 
-        // Need to fetch from API
-        console.log(`Fetching news in ${language}, page ${page}...`);
+        cache.isLoading = true;
+        console.log('Fetching initial news...');
 
-        const searchTerms = EGGPLANT_TERMS[language];
-
-        // Build URL with user's configured parameters:
-        // - country: in,pk,bd (India, Pakistan, Bangladesh)
-        // - language: based on selected language
-        // - category: food,health,lifestyle
-        // - image=1 to ensure images are included
-        let url = `${NEWSDATA_API_URL}?apikey=${NEWSDATA_API_KEY}` +
-            `&q=${encodeURIComponent(searchTerms)}` +
-            `&country=in,pk,bd` +
-            `&language=${language}` +
-            `&category=food,health,lifestyle` +
-            `&image=1`;
-
-        // If loading more and we have a nextPage token, use it
-        if (page > 1 && langCache.nextPage) {
-            url += `&page=${langCache.nextPage}`;
-        }
+        const url = buildApiUrl();
+        console.log('API URL:', url);
 
         const response = await fetch(url);
         const data = await response.json();
+
+        cache.isLoading = false;
 
         if (data.status !== 'success' || !data.results) {
             console.error('NewsData.io API error:', data);
             return [];
         }
 
-        console.log(`Received ${data.results.length} articles in ${language}`);
+        console.log(`Received ${data.results.length} articles, nextPage: ${data.nextPage}`);
 
-        // Map API response to our Article interface - ALL DATA FROM API, NO FALLBACKS
+        // Map API response to our Article interface
         const newArticles: Article[] = data.results
-            .filter((item: any) => item.title) // Only include items with title
+            .filter((item: any) => item.title && item.image_url)
             .map((item: any) => ({
                 id: item.article_id,
                 source: {
                     id: item.source_id || null,
-                    name: item.source_name || item.source_id || null
+                    name: item.source_name || item.source_id || 'Unknown'
                 },
                 author: item.creator ? (Array.isArray(item.creator) ? item.creator.join(', ') : item.creator) : null,
                 title: item.title,
                 description: item.description || null,
                 url: item.link,
-                urlToImage: item.image_url || null,
+                urlToImage: item.image_url,
                 publishedAt: item.pubDate,
                 content: item.content || null
             }));
 
         // Update cache
-        if (page === 1) {
-            // Fresh fetch - replace cache
-            langCache.articles = deduplicateById(newArticles);
-        } else {
-            // Append to existing cache and deduplicate
-            langCache.articles = deduplicateById([...langCache.articles, ...newArticles]);
-        }
+        cache.articles = deduplicateById(newArticles);
+        cache.nextPage = data.nextPage || null;
+        cache.lastFetchTime = Date.now();
 
-        langCache.nextPage = data.nextPage || null;
-        langCache.lastFetchTime = Date.now();
-
-        // Return requested page
-        return langCache.articles.slice(startIndex, startIndex + limit);
+        return cache.articles;
 
     } catch (error) {
-        console.error('Error fetching news from NewsData.io:', error);
+        console.error('Error fetching news:', error);
+        cache.isLoading = false;
         return [];
     }
 };
 
-export const getArticleById = async (id: string, language: Language = 'en'): Promise<Article | undefined> => {
-    return cache[language].articles.find(a => a.id === id);
-};
+// Fetch more articles (next page) - for infinite scroll
+export const fetchMoreNews = async (language?: Language): Promise<Article[]> => {
+    try {
+        // No more pages available
+        if (!cache.nextPage) {
+            console.log('No more pages available');
+            return cache.articles;
+        }
 
-// Clear cache for a specific language (useful when language changes)
-export const clearNewsCache = (language?: Language) => {
-    if (language) {
-        cache[language] = { articles: [], nextPage: null, lastFetchTime: 0 };
-    } else {
-        Object.keys(cache).forEach(lang => {
-            cache[lang as Language] = { articles: [], nextPage: null, lastFetchTime: 0 };
-        });
+        if (cache.isLoading) {
+            return cache.articles;
+        }
+
+        cache.isLoading = true;
+        console.log(`Fetching more news, page: ${cache.nextPage}...`);
+
+        const url = buildApiUrl(cache.nextPage);
+        console.log('API URL:', url);
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        cache.isLoading = false;
+
+        if (data.status !== 'success' || !data.results) {
+            console.error('NewsData.io API error:', data);
+            return cache.articles;
+        }
+
+        console.log(`Received ${data.results.length} more articles, nextPage: ${data.nextPage}`);
+
+        // Map API response
+        const newArticles: Article[] = data.results
+            .filter((item: any) => item.title && item.image_url)
+            .map((item: any) => ({
+                id: item.article_id,
+                source: {
+                    id: item.source_id || null,
+                    name: item.source_name || item.source_id || 'Unknown'
+                },
+                author: item.creator ? (Array.isArray(item.creator) ? item.creator.join(', ') : item.creator) : null,
+                title: item.title,
+                description: item.description || null,
+                url: item.link,
+                urlToImage: item.image_url,
+                publishedAt: item.pubDate,
+                content: item.content || null
+            }));
+
+        // Append to cache
+        cache.articles = deduplicateById([...cache.articles, ...newArticles]);
+        cache.nextPage = data.nextPage || null;
+
+        return cache.articles;
+
+    } catch (error) {
+        console.error('Error fetching more news:', error);
+        cache.isLoading = false;
+        return cache.articles;
     }
 };
 
-// Check if more pages are available
-export const hasMoreNews = (language: Language = 'en'): boolean => {
-    return cache[language].nextPage !== null;
+// Get all cached articles
+export const getCachedNews = (): Article[] => {
+    return cache.articles;
 };
+
+// Check if more pages are available
+export const hasMoreNews = (language?: Language): boolean => {
+    return cache.nextPage !== null;
+};
+
+// Check if currently loading
+export const isLoadingNews = (): boolean => {
+    return cache.isLoading;
+};
+
+// Clear cache
+export const clearNewsCache = (language?: Language) => {
+    cache = { articles: [], nextPage: null, lastFetchTime: 0, isLoading: false };
+};
+
+// Get article by ID
+export const getArticleById = (id: string, language?: Language): Article | undefined => {
+    return cache.articles.find(a => a.id === id);
+};
+
+// Legacy export for compatibility
+export const fetchEggplantNews = fetchNews;
