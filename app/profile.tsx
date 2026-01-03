@@ -104,10 +104,10 @@ export default function ProfileScreen() {
                     <Text className="text-muted-foreground mt-4 text-sm font-medium">Change Profile Photo</Text>
                 </View>
 
-                <View className="gap-6 on-secondary/5 p-6 rounded-2xl border border-secondary">
+                <View className="gap-6 p-6 rounded-2xl bg-card border border-border">
                     <View className="gap-2">
                         <Text className="font-bold text-foreground ml-1 text-sm uppercase tracking-wide opacity-70">Full Name</Text>
-                        <View className="flex-row items-center bg-secondary/30 border border-border/50 rounded-xl px-4 h-14">
+                        <View className="flex-row items-center bg-background border border-border rounded-xl px-4 h-14">
                             <User size={20} color={mutedColor} className="mr-3" />
                             <TextInput
                                 className="flex-1 text-foreground font-medium text-lg h-full"
@@ -121,7 +121,7 @@ export default function ProfileScreen() {
 
                     <View className="gap-2">
                         <Text className="font-bold text-foreground ml-1 text-sm uppercase tracking-wide opacity-70">Email Address</Text>
-                        <View className="flex-row items-center bg-secondary/30 border border-border/50 rounded-xl px-4 h-14">
+                        <View className="flex-row items-center bg-background border border-border rounded-xl px-4 h-14">
                             <Mail size={20} color={mutedColor} className="mr-3" />
                             <TextInput
                                 className="flex-1 text-foreground font-medium text-lg h-full"

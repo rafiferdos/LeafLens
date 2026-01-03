@@ -11,7 +11,7 @@ import { useColorScheme } from 'nativewind';
 import { NAV_THEME, THEME } from '@/lib/theme';
 import { useLanguage } from '@/lib/language';
 import { useRouter } from 'expo-router';
-import { useNavigation } from '@react-navigation/native';
+
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { diseaseDatabase, DiseaseData } from '@/lib/disease-data';
 
@@ -21,25 +21,20 @@ const API_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://loc
 
 export default function HomeScreen() {
     const router = useRouter();
-    const navigation = useNavigation();
     const { colorScheme } = useColorScheme();
     const theme = NAV_THEME[colorScheme ?? 'light'];
     const { t } = useLanguage();
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [result, setResult] = useState<any>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [animationKey, setAnimationKey] = useState(0);
 
     const [userName, setUserName] = useState<string | null>(null);
     const [userPhoto, setUserPhoto] = useState<string | null>(null);
 
+    // Load profile data on mount and when theme changes
     useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
-            setAnimationKey(prev => prev + 1);
-            loadUserProfile();
-        });
-        return unsubscribe;
-    }, [navigation]);
+        loadUserProfile();
+    }, [colorScheme]);
 
     const loadUserProfile = async () => {
         try {

@@ -15,11 +15,10 @@ export {
 
 import { useFonts, Kablammo_400Regular } from '@expo-google-fonts/kablammo';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import LottieView from 'lottie-react-native';
 import { View } from 'react-native';
-import { useState } from 'react';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -31,40 +30,41 @@ export default function RootLayout() {
   });
   const [animationFinished, setAnimationFinished] = useState(false);
 
+  // Memoize the theme value to prevent unnecessary re-renders and context loss
+  const themeValue = useMemo(() => {
+    return NAV_THEME[colorScheme ?? 'light'];
+  }, [colorScheme]);
+
   useEffect(() => {
     if ((loaded || error)) {
-      // Hide the native splash screen as soon as fonts are loaded
-      // We will show our Lottie view instead
       SplashScreen.hideAsync();
     }
   }, [loaded, error]);
 
-  if ((!loaded && !error) || !animationFinished) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background">
-        {/* If fonts aren't loaded yet, show nothing or native splash. 
-                 Once fonts are loaded (even if animation isn't finished), we show the animation. 
-                 This check ensures LottieView renders only after we are mostly ready, 
-                 or we can render it along with font loading.
-                 Actually, simpler: just show Lottie until it finishes.
-             */}
-        <LottieView
-          source={require('../assets/animations/walking_pothos.json')}
-          autoPlay
-          loop={false}
-          style={{ width: 200, height: 200 }}
-          onAnimationFinish={() => setAnimationFinished(true)}
-        />
-      </View>
-    );
-  }
+  // IMPORTANT: Always wrap in ThemeProvider, even during loading
+  // This prevents "Couldn't find navigation context" errors
+  const isLoading = (!loaded && !error) || !animationFinished;
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+    <ThemeProvider value={themeValue}>
       <LanguageProvider>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <Stack screenOptions={{ headerShown: false }} />
-        <PortalHost />
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center bg-background">
+            <LottieView
+              source={require('../assets/animations/walking_pothos.json')}
+              autoPlay
+              loop={false}
+              style={{ width: 200, height: 200 }}
+              onAnimationFinish={() => setAnimationFinished(true)}
+            />
+          </View>
+        ) : (
+          <>
+            <Stack screenOptions={{ headerShown: false }} />
+            <PortalHost />
+          </>
+        )}
       </LanguageProvider>
     </ThemeProvider>
   );
