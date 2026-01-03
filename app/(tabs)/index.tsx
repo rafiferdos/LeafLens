@@ -86,34 +86,46 @@ export default function ScanScreen() {
 
         setIsAnalyzing(true);
         try {
+            // Prepare the image URI for the platform
+            const imageUri = Platform.OS === 'android'
+                ? selectedImage
+                : selectedImage.replace('file://', '');
+
             const formData = new FormData();
             formData.append('file', {
-                uri: selectedImage,
+                uri: imageUri,
                 name: 'photo.jpg',
                 type: 'image/jpeg',
-                // @ts-ignore
-                uri: Platform.OS === 'android' ? selectedImage : selectedImage.replace('file://', ''),
             } as any);
+
+            console.log('Sending request to:', `${API_URL}/predict`);
 
             const response = await fetch(`${API_URL}/predict`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
                 body: formData,
+                // Note: Don't set Content-Type header for multipart/form-data - 
+                // fetch will set it automatically with the boundary
             });
 
+            console.log('Response status:', response.status);
+
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error:', errorText);
                 throw new Error('Analysis failed');
             }
 
             const data = await response.json();
+            console.log('Result:', data);
             setResult(data);
             saveToHistory(data, selectedImage);
 
         } catch (error) {
-            Alert.alert('Error', 'Failed to analyze image. Ensure backend is running.');
-            console.error(error);
+            console.error('Analysis error:', error);
+            Alert.alert(
+                'Connection Error',
+                'Could not connect to the analysis server. Please check:\n\n• Backend server is running\n• Network connection is stable\n• API URL is correct'
+            );
         } finally {
             setIsAnalyzing(false);
         }
