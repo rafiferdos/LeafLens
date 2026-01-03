@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { Text } from '@/components/ui/text';
-import { ArrowLeft, Plus, Sprout, Trash2, Camera, X, Check, Droplets, Sun, Shield, Info } from 'lucide-react-native';
+import { ArrowLeft, Plus, Sprout, Trash2, Camera, X, Check, Droplets, Sun, Shield, Info, MapPin } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { NAV_THEME, THEME } from '@/lib/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -216,9 +216,9 @@ export default function MyGardenScreen() {
                     renderItem={({ item, index }) => (
                         <Animated.View
                             entering={FadeInDown.delay(index * 100).springify()}
-                            className="bg-card mb-6 rounded-[24px] p-3 border border-border shadow-sm flex-row gap-4 overflow-hidden"
+                            className="bg-card mb-4 rounded-[20px] p-2.5 border border-border shadow-sm flex-row gap-3 overflow-hidden"
                         >
-                            <View className="w-28 h-36 rounded-2xl bg-muted items-center justify-center overflow-hidden border border-border/50 shadow-sm relative">
+                            <View className="w-24 h-32 rounded-2xl bg-muted items-center justify-center overflow-hidden border border-border/50 shadow-sm relative">
                                 {item.imageUri ? (
                                     <Image source={{ uri: item.imageUri }} className="w-full h-full" resizeMode="cover" />
                                 ) : (
@@ -233,41 +233,47 @@ export default function MyGardenScreen() {
                                 )}
                             </View>
 
-                            <View className="flex-1 py-1 justify-between">
+                            <View className="flex-1 py-0.5 justify-between h-32">
                                 <View>
                                     <View className="flex-row justify-between items-start">
                                         <View className="flex-1 mr-2">
-                                            <Text className="font-bold text-xl leading-tight text-foreground" numberOfLines={1}>{item.name}</Text>
-                                            <Text className="text-primary font-bold text-xs uppercase tracking-wider mt-0.5">{item.type}</Text>
+                                            <Text className="font-bold text-lg leading-tight text-foreground" numberOfLines={1}>{item.name}</Text>
+                                            <Text className="text-primary font-bold text-[10px] uppercase tracking-wider">{item.type}</Text>
                                         </View>
                                         <TouchableOpacity
                                             onPress={() => deletePlant(item.id)}
-                                            className="w-8 h-8 bg-destructive/5 rounded-full items-center justify-center -mt-1 -mr-1"
+                                            className="w-7 h-7 bg-destructive/5 rounded-full items-center justify-center -mt-1 -mr-1"
                                         >
-                                            <Trash2 size={16} color={colors.destructive} />
+                                            <Trash2 size={14} color={colors.destructive} />
                                         </TouchableOpacity>
                                     </View>
 
-                                    <View className="flex-row flex-wrap gap-2 mt-4">
+                                    <View className="flex-row flex-wrap gap-1.5 mt-2">
                                         {item.wateringFrequency && (
-                                            <View className="flex-row items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-lg border border-blue-100 dark:border-blue-900/30">
-                                                <Droplets size={12} color="#3b82f6" />
-                                                <Text className="text-xs font-semibold text-blue-600 dark:text-blue-400">{item.wateringFrequency}</Text>
+                                            <View className="flex-row items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/30">
+                                                <Droplets size={10} color="#3b82f6" />
+                                                <Text className="text-[10px] font-semibold text-blue-600 dark:text-blue-400">{item.wateringFrequency}</Text>
                                             </View>
                                         )}
                                         {item.sunlight && (
-                                            <View className="flex-row items-center gap-1.5 bg-orange-50 dark:bg-orange-900/20 px-2.5 py-1 rounded-lg border border-orange-100 dark:border-orange-900/30">
-                                                <Sun size={12} color="#f97316" />
-                                                <Text className="text-xs font-semibold text-orange-600 dark:text-orange-400">{item.sunlight}</Text>
+                                            <View className="flex-row items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-md border border-orange-100 dark:border-orange-900/30">
+                                                <Sun size={10} color="#f97316" />
+                                                <Text className="text-[10px] font-semibold text-orange-600 dark:text-orange-400">{item.sunlight}</Text>
+                                            </View>
+                                        )}
+                                        {item.location && (
+                                            <View className="flex-row items-center gap-1 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded-md border border-purple-100 dark:border-purple-900/30">
+                                                <MapPin size={10} color="#9333ea" />
+                                                <Text className="text-[10px] font-semibold text-purple-600 dark:text-purple-400" numberOfLines={1}>{item.location}</Text>
                                             </View>
                                         )}
                                     </View>
                                 </View>
 
-                                <View className="flex-row justify-between items-end mt-2">
+                                <View className="flex-row justify-between items-end">
                                     <View className="flex-row items-center gap-1">
                                         {item.difficulty && (
-                                            <Text className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.difficulty === 'Easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200' :
+                                            <Text className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${item.difficulty === 'Easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200' :
                                                     item.difficulty === 'Medium' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200' :
                                                         'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200'
                                                 }`}>
@@ -275,7 +281,7 @@ export default function MyGardenScreen() {
                                             </Text>
                                         )}
                                     </View>
-                                    <Text className="text-muted-foreground/50 text-[10px] font-medium">
+                                    <Text className="text-muted-foreground/40 text-[9px] font-medium">
                                         Added {new Date(item.dateAdded).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                     </Text>
                                 </View>
