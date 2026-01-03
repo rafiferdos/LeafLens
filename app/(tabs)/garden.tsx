@@ -93,7 +93,7 @@ export default function GardenScreen() {
                             <Text className="text-sm text-muted-foreground">{item.type || 'Plant'}</Text>
                         </View>
                         <TouchableOpacity onPress={() => handleDeletePlant(index)} className="p-1">
-                            <Trash2 size={16} color={theme.colors.destructive} opacity={0.5} />
+                            <Trash2 size={16} color={theme.colors.notification} opacity={0.5} />
                         </TouchableOpacity>
                     </View>
 
