@@ -2,13 +2,13 @@ import { View, FlatList, TouchableOpacity, Image, RefreshControl, ActivityIndica
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
-import { fetchNews, fetchMoreNews, clearNewsCache, hasMoreNews, Article } from '@/services/news';
+import { fetchNews, fetchMoreNews, clearNewsCache, hasMoreNews, Article, NewsCategory } from '@/services/news';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { NAV_THEME, THEME } from '@/lib/theme';
 import { useColorScheme } from 'nativewind';
 import { useLanguage } from '@/lib/language';
-import { Calendar, User, Globe } from 'lucide-react-native';
+import { Calendar, User, Globe, Utensils, HeartPulse, Sparkles } from 'lucide-react-native';
 import {
     Dialog,
     DialogContent,
@@ -16,11 +16,19 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 
+// Category config with icons
+const CATEGORIES: { key: NewsCategory; icon: any; labelKey: string }[] = [
+    { key: 'food', icon: Utensils, labelKey: 'food' },
+    { key: 'health', icon: HeartPulse, labelKey: 'health' },
+    { key: 'lifestyle', icon: Sparkles, labelKey: 'lifestyle' },
+];
+
 export default function NewsScreen() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [category, setCategory] = useState<NewsCategory>('food');
     const [animationKey, setAnimationKey] = useState(0);
     const [showLanguageDialog, setShowLanguageDialog] = useState(false);
 
@@ -36,19 +44,19 @@ export default function NewsScreen() {
     );
 
     // Initial load
-    const loadInitialNews = async () => {
+    const loadInitialNews = async (cat: NewsCategory) => {
         setLoading(true);
-        const news = await fetchNews(language);
+        const news = await fetchNews(cat);
         setArticles(news);
         setLoading(false);
     };
 
     // Load more (infinite scroll)
     const loadMoreNews = async () => {
-        if (loadingMore || !hasMoreNews(language)) return;
+        if (loadingMore || !hasMoreNews(category)) return;
 
         setLoadingMore(true);
-        const allArticles = await fetchMoreNews(language);
+        const allArticles = await fetchMoreNews(category);
         setArticles(allArticles);
         setLoadingMore(false);
     };
@@ -56,16 +64,23 @@ export default function NewsScreen() {
     // Pull to refresh
     const onRefresh = async () => {
         setRefreshing(true);
-        clearNewsCache(language);
-        const news = await fetchNews(language);
+        clearNewsCache(category);
+        const news = await fetchNews(category);
         setArticles(news);
         setRefreshing(false);
     };
 
-    // Reload when language changes
+    // Change category
+    const handleCategoryChange = (newCategory: NewsCategory) => {
+        if (newCategory === category) return;
+        setCategory(newCategory);
+        setAnimationKey(prev => prev + 1);
+    };
+
+    // Reload when category changes
     useEffect(() => {
-        loadInitialNews();
-    }, [language]);
+        loadInitialNews(category);
+    }, [category]);
 
     const handleLanguageChange = (langCode: string) => {
         setLanguage(langCode as any);
@@ -136,7 +151,7 @@ export default function NewsScreen() {
                 </View>
             );
         }
-        if (!hasMoreNews(language) && articles.length > 0) {
+        if (!hasMoreNews(category) && articles.length > 0) {
             return (
                 <View className="py-6 items-center">
                     <Text className="text-muted-foreground text-sm">No more articles</Text>
@@ -165,20 +180,31 @@ export default function NewsScreen() {
                     {t('latestUpdates')}
                 </Text>
 
-                {/* View Options */}
+                {/* Category Filter Buttons */}
                 <View className="flex-row gap-2">
-                    <TouchableOpacity
-                        className="bg-primary px-4 py-2 rounded-full"
-                        onPress={() => { }}
-                    >
-                        <Text className="text-primary-foreground font-bold text-xs">{t('latest')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        className="bg-muted px-4 py-2 rounded-full border border-border/50"
-                        onPress={() => { }}
-                    >
-                        <Text className="text-muted-foreground font-medium text-xs">{t('popular')}</Text>
-                    </TouchableOpacity>
+                    {CATEGORIES.map((cat) => {
+                        const Icon = cat.icon;
+                        const isActive = category === cat.key;
+                        return (
+                            <TouchableOpacity
+                                key={cat.key}
+                                className={`flex-row items-center gap-2 px-4 py-2 rounded-full ${isActive
+                                        ? 'bg-primary'
+                                        : 'bg-muted border border-border/50'
+                                    }`}
+                                onPress={() => handleCategoryChange(cat.key)}
+                            >
+                                <Icon
+                                    size={14}
+                                    color={isActive ? '#fff' : theme.colors.text}
+                                />
+                                <Text className={`font-bold text-xs capitalize ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'
+                                    }`}>
+                                    {cat.key}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
             </View>
 
@@ -189,7 +215,7 @@ export default function NewsScreen() {
                 </View>
             ) : (
                 <FlatList
-                    key={`${animationKey}-${language}`}
+                    key={`${animationKey}-${category}`}
                     data={articles}
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
