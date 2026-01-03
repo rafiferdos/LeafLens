@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useColorScheme } from 'nativewind';
 import { NAV_THEME } from '@/lib/theme';
+import { useLanguage } from '@/lib/language';
 import Animated, { FadeInDown, FadeInUp, FadeIn, LayoutAnimationConfig } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
 
@@ -23,6 +24,7 @@ export default function ScanScreen() {
     const router = useRouter();
     const { colorScheme } = useColorScheme();
     const theme = NAV_THEME[colorScheme ?? 'light'];
+    const { t } = useLanguage();
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [result, setResult] = useState<any>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -250,8 +252,8 @@ export default function ScanScreen() {
                             <Image source={AppIcon} className="w-6 h-6" resizeMode="contain" />
                         </View>
                         <View>
-                            <Text className="text-sm text-muted-foreground">Welcome back</Text>
-                            <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">Plant Parent</Text>
+                            <Text className="text-sm text-muted-foreground">{t('welcomeBack')}</Text>
+                            <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">{t('plantParent')}</Text>
                         </View>
                     </Animated.View>
                 </View>
@@ -268,10 +270,10 @@ export default function ScanScreen() {
 
                         <View>
                             <View className="bg-white/20 self-start px-3 py-1 rounded-full mb-3">
-                                <Text className="text-white text-xs font-bold">AI Powered</Text>
+                                <Text className="text-white text-xs font-bold">{t('aiPowered')}</Text>
                             </View>
                             <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-white text-2xl font-bold w-2/3 leading-tight">
-                                Diagnose your plant's health instantly
+                                {t('diagnoseInstantly')}
                             </Text>
                         </View>
 
@@ -281,7 +283,7 @@ export default function ScanScreen() {
                             className="bg-white px-5 py-3 self-start rounded-xl flex-row items-center gap-2 mt-4"
                         >
                             <Camera size={18} color={theme.colors.primary} />
-                            <Text className="text-primary font-bold">Snap Photo</Text>
+                            <Text className="text-primary font-bold">{t('snapPhoto')}</Text>
                         </TouchableOpacity>
                     </Animated.View>
                 </View>
@@ -296,7 +298,7 @@ export default function ScanScreen() {
                             <View className="w-12 h-12 rounded-full bg-background items-center justify-center shadow-sm">
                                 <ImageIcon size={24} color={theme.colors.text} />
                             </View>
-                            <Text className="font-semibold text-foreground">Upload</Text>
+                            <Text className="font-semibold text-foreground">{t('upload')}</Text>
                         </TouchableOpacity>
                     </Animated.View>
 
@@ -308,7 +310,7 @@ export default function ScanScreen() {
                             <View className="w-12 h-12 rounded-full bg-background items-center justify-center shadow-sm">
                                 <Leaf size={24} color={theme.colors.text} />
                             </View>
-                            <Text className="font-semibold text-foreground">My Garden</Text>
+                            <Text className="font-semibold text-foreground">{t('myGarden')}</Text>
                         </TouchableOpacity>
                     </Animated.View>
                 </View>
@@ -317,9 +319,9 @@ export default function ScanScreen() {
                 {recentScan && (
                     <Animated.View entering={FadeInDown.delay(400)} className="px-6 mt-8">
                         <View className="flex-row items-center justify-between mb-4">
-                            <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-lg font-bold">Recent Scan</Text>
+                            <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-lg font-bold">{t('recentScan')}</Text>
                             <TouchableOpacity>
-                                <Text className="text-primary text-sm">View All</Text>
+                                <Text className="text-primary text-sm">{t('viewAll')}</Text>
                             </TouchableOpacity>
                         </View>
                         <View className="bg-card p-4 rounded-2xl border border-border flex-row items-center gap-4 shadow-sm">
@@ -341,30 +343,30 @@ export default function ScanScreen() {
 
                 {/* Plant Care Tips - "Comfort" Content */}
                 <Animated.View entering={FadeInDown.delay(500)} className="px-6 mt-8 mb-6">
-                    <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-lg font-bold mb-4">Plant Care Essentials</Text>
+                    <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-lg font-bold mb-4">{t('plantCareEssentials')}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-6 px-6 gap-4">
                         <View className="w-40 bg-orange-50 dark:bg-orange-950/20 p-4 rounded-2xl border border-orange-100 dark:border-orange-900/40 mr-4">
                             <View className="bg-orange-100 dark:bg-orange-900/50 w-10 h-10 rounded-full items-center justify-center mb-3">
                                 <Sun size={20} color="#ea580c" />
                             </View>
-                            <Text className="font-bold text-orange-900 dark:text-orange-100 mb-1">Sunlight</Text>
-                            <Text className="text-xs text-orange-800/70 dark:text-orange-200/70 leading-4">Most indoor plants prefer bright, indirect light.</Text>
+                            <Text className="font-bold text-orange-900 dark:text-orange-100 mb-1">{t('sunlight')}</Text>
+                            <Text className="text-xs text-orange-800/70 dark:text-orange-200/70 leading-4">{t('sunlightTip')}</Text>
                         </View>
 
                         <View className="w-40 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/40 mr-4">
                             <View className="bg-blue-100 dark:bg-blue-900/50 w-10 h-10 rounded-full items-center justify-center mb-3">
                                 <Droplets size={20} color="#0284c7" />
                             </View>
-                            <Text className="font-bold text-blue-900 dark:text-blue-100 mb-1">Watering</Text>
-                            <Text className="text-xs text-blue-800/70 dark:text-blue-200/70 leading-4">Check soil moisture before watering to avoid root rot.</Text>
+                            <Text className="font-bold text-blue-900 dark:text-blue-100 mb-1">{t('watering')}</Text>
+                            <Text className="text-xs text-blue-800/70 dark:text-blue-200/70 leading-4">{t('wateringTip')}</Text>
                         </View>
 
                         <View className="w-40 bg-green-50 dark:bg-green-950/20 p-4 rounded-2xl border border-green-100 dark:border-green-900/40">
                             <View className="bg-green-100 dark:bg-green-900/50 w-10 h-10 rounded-full items-center justify-center mb-3">
                                 <Thermometer size={20} color="#16a34a" />
                             </View>
-                            <Text className="font-bold text-green-900 dark:text-green-100 mb-1">Temp</Text>
-                            <Text className="text-xs text-green-800/70 dark:text-green-200/70 leading-4">Keep plants away from cold drafts and heaters.</Text>
+                            <Text className="font-bold text-green-900 dark:text-green-100 mb-1">{t('temp')}</Text>
+                            <Text className="text-xs text-green-800/70 dark:text-green-200/70 leading-4">{t('tempTip')}</Text>
                         </View>
                     </ScrollView>
                 </Animated.View>

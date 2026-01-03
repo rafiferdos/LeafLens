@@ -60,12 +60,12 @@ export default function RootLayout() {
   }
 
   return (
-    <LanguageProvider>
-      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+      <LanguageProvider>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false }} />
         <PortalHost />
-      </ThemeProvider>
-    </LanguageProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

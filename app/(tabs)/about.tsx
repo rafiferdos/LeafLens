@@ -44,7 +44,7 @@ export default function AboutScreen() {
                         LeafLens
                     </Text>
                     <Text className="text-muted-foreground text-center text-lg max-w-[280px]">
-                        Nurturing nature with the power of vision.
+                        {t('nurturingNature')}
                     </Text>
                 </Animated.View>
 
@@ -58,18 +58,42 @@ export default function AboutScreen() {
                         <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">{t('language')}</Text>
                     </View>
 
-                    <View className="bg-card border border-border rounded-3xl p-2 shadow-sm">
-                        <View className="flex-row flex-wrap">
-                            {languageOptions.map((lang) => (
+                    <View className="bg-card border border-border rounded-3xl p-3 shadow-sm">
+                        {/* Row 1 */}
+                        <View className="flex-row gap-2 mb-2">
+                            {languageOptions.slice(0, 2).map((lang) => (
                                 <TouchableOpacity
                                     key={lang.code}
                                     onPress={() => setLanguage(lang.code)}
-                                    className={`flex-1 min-w-[45%] p-3 rounded-2xl items-center justify-center m-1 ${language === lang.code
-                                            ? 'bg-primary/10 border border-primary/30'
-                                            : 'bg-secondary/30'
+                                    className={`flex-1 p-4 rounded-2xl items-center justify-center relative ${language === lang.code
+                                        ? 'bg-primary/10 border border-primary/30'
+                                        : 'bg-secondary/30'
                                         }`}
                                 >
-                                    <Text className={`font-bold text-sm ${language === lang.code ? 'text-primary' : 'text-foreground'}`}>
+                                    <Text className={`font-bold text-base ${language === lang.code ? 'text-primary' : 'text-foreground'}`}>
+                                        {lang.nativeName}
+                                    </Text>
+                                    <Text className="text-xs text-muted-foreground">{lang.name}</Text>
+                                    {language === lang.code && (
+                                        <View className="absolute top-2 right-2">
+                                            <Check size={14} color={theme.colors.primary} />
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                        {/* Row 2 */}
+                        <View className="flex-row gap-2">
+                            {languageOptions.slice(2, 4).map((lang) => (
+                                <TouchableOpacity
+                                    key={lang.code}
+                                    onPress={() => setLanguage(lang.code)}
+                                    className={`flex-1 p-4 rounded-2xl items-center justify-center relative ${language === lang.code
+                                        ? 'bg-primary/10 border border-primary/30'
+                                        : 'bg-secondary/30'
+                                        }`}
+                                >
+                                    <Text className={`font-bold text-base ${language === lang.code ? 'text-primary' : 'text-foreground'}`}>
                                         {lang.nativeName}
                                     </Text>
                                     <Text className="text-xs text-muted-foreground">{lang.name}</Text>
@@ -91,7 +115,7 @@ export default function AboutScreen() {
                 >
                     <View className="flex-row items-center gap-2 mb-4">
                         <Palette size={20} color={theme.colors.text} />
-                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">Appearance</Text>
+                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">{t('appearance')}</Text>
                     </View>
 
                     <View className="bg-card border border-border rounded-3xl p-2 flex-row shadow-sm">
@@ -101,7 +125,7 @@ export default function AboutScreen() {
                             className={`flex-1 p-4 rounded-2xl items-center justify-center gap-2 ${colorScheme === 'light' ? 'bg-background shadow-sm border border-border/50' : ''}`}
                         >
                             <Sun size={24} color={colorScheme === 'light' ? theme.colors.primary : theme.colors.text} className={colorScheme !== 'light' ? 'opacity-50' : ''} />
-                            <Text className={`font-medium ${colorScheme === 'light' ? 'text-foreground' : 'text-muted-foreground'}`}>Light</Text>
+                            <Text className={`font-medium ${colorScheme === 'light' ? 'text-foreground' : 'text-muted-foreground'}`}>{t('light')}</Text>
                         </TouchableOpacity>
 
                         {/* Dark Option */}
@@ -110,7 +134,7 @@ export default function AboutScreen() {
                             className={`flex-1 p-4 rounded-2xl items-center justify-center gap-2 ${colorScheme === 'dark' ? 'bg-secondary shadow-sm border border-border/50' : ''}`}
                         >
                             <Moon size={24} color={colorScheme === 'dark' ? theme.colors.primary : theme.colors.text} className={colorScheme !== 'dark' ? 'opacity-50' : ''} />
-                            <Text className={`font-medium ${colorScheme === 'dark' ? 'text-foreground' : 'text-muted-foreground'}`}>Dark</Text>
+                            <Text className={`font-medium ${colorScheme === 'dark' ? 'text-foreground' : 'text-muted-foreground'}`}>{t('dark')}</Text>
                         </TouchableOpacity>
 
                         {/* System Option */}
@@ -119,7 +143,7 @@ export default function AboutScreen() {
                             className={`flex-1 p-4 rounded-2xl items-center justify-center gap-2 ${!colorScheme ? 'bg-background shadow-sm border border-border/50' : ''}`}
                         >
                             <Monitor size={24} color={!colorScheme ? theme.colors.primary : theme.colors.text} className={colorScheme ? 'opacity-50' : ''} />
-                            <Text className={`font-medium ${!colorScheme ? 'text-foreground' : 'text-muted-foreground'}`}>System</Text>
+                            <Text className={`font-medium ${!colorScheme ? 'text-foreground' : 'text-muted-foreground'}`}>{t('system')}</Text>
                         </TouchableOpacity>
                     </View>
                 </Animated.View>
@@ -129,9 +153,9 @@ export default function AboutScreen() {
                     entering={FadeInUp.delay(200).duration(800).springify()}
                     className="mb-10"
                 >
-                    <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold mb-3 text-foreground">Our Mission</Text>
+                    <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold mb-3 text-foreground">{t('ourMission')}</Text>
                     <Text className="text-muted-foreground leading-7 text-lg">
-                        We believe that every plant deserves to thrive. LeafLens empowers you to understand your green companions better, bringing expert botanical knowledge to your fingertips instantly.
+                        {t('missionDesc')}
                     </Text>
                 </Animated.View>
 
@@ -141,9 +165,9 @@ export default function AboutScreen() {
                     className="mb-8"
                 >
                     <View className="mb-6 flex-row items-center">
-                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">Built with </Text>
+                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">{t('builtWith')} </Text>
                         <Heart size={20} color={isDark ? '#f472b6' : '#ec4899'} fill={isDark ? '#f472b6' : '#ec4899'} className="mx-1" />
-                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground"> by</Text>
+                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground"> {t('by')}</Text>
                     </View>
 
                     <View className="gap-6">
@@ -156,9 +180,9 @@ export default function AboutScreen() {
                             />
                             <View className="flex-1">
                                 <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold mb-1">Rafi Ferdos</Text>
-                                <Text className="text-muted-foreground mb-2">Creator & Engineer</Text>
+                                <Text className="text-muted-foreground mb-2">{t('creatorEngineer')}</Text>
                                 <TouchableOpacity onPress={() => Linking.openURL('https://rafiferdos.vercel.app')}>
-                                    <Text className="text-primary font-medium">Visit Website &rarr;</Text>
+                                    <Text className="text-primary font-medium">{t('visitWebsite')} &rarr;</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -172,8 +196,8 @@ export default function AboutScreen() {
                             />
                             <View className="flex-1">
                                 <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold mb-1">Siam Akter Mim</Text>
-                                <Text className="text-muted-foreground mb-2">Researcher & Partner</Text>
-                                <Text className="text-xs text-muted-foreground/80 italic">Making things beautiful</Text>
+                                <Text className="text-muted-foreground mb-2">{t('researcherPartner')}</Text>
+                                <Text className="text-xs text-muted-foreground/80 italic">{t('makingBeautiful')}</Text>
                             </View>
                         </View>
                     </View>
@@ -184,7 +208,7 @@ export default function AboutScreen() {
                     className="items-center mt-4"
                 >
                     <Text className="text-sm text-muted-foreground/60">
-                        Version 1.0.0 (Native)
+                        {t('version')} 1.0.0 (Native)
                     </Text>
                 </Animated.View>
 

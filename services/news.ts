@@ -15,24 +15,16 @@ export interface Article {
     content: string | null;
 }
 
-// NewsData.io API - Provides images and descriptions directly
+// NewsData.io API - Using /latest endpoint with regional filters
 const NEWSDATA_API_KEY = 'pub_0b8bbc25434548d8a777ec2b7bf60273';
-const NEWSDATA_API_URL = 'https://newsdata.io/api/1/news';
+const NEWSDATA_API_URL = 'https://newsdata.io/api/1/latest';
 
-// Search terms - broader vegetable/garden topics with eggplant preference
+// Search terms - eggplant only in different languages
 const EGGPLANT_TERMS: Record<Language, string> = {
-    en: 'eggplant OR vegetable OR garden OR farming',
-    bn: 'বেগুন OR সবজি OR বাগান OR কৃষি',
-    hi: 'बैंगन OR सब्जी OR बागवानी OR खेती',
-    ur: 'بینگن OR سبزی OR باغبانی OR کھیتی',
-};
-
-// NewsData.io language codes
-const NEWS_LANG_CODES: Record<Language, string> = {
-    en: 'en',
-    bn: 'bn',
-    hi: 'hi',
-    ur: 'ur',
+    en: 'eggplant OR brinjal OR aubergine',
+    bn: 'বেগুন',
+    hi: 'बैंगन OR baingan',
+    ur: 'بینگن OR baingan',
 };
 
 // Cache per language with pagination support
@@ -51,16 +43,14 @@ const cache: Record<Language, CacheData> = {
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Helper to deduplicate articles by title
-const deduplicateArticles = (articles: Article[]): Article[] => {
+// Helper to deduplicate articles by ID only (not title - show all sources)
+const deduplicateById = (articles: Article[]): Article[] => {
     const seen = new Set<string>();
     return articles.filter(article => {
-        // Normalize title for comparison (lowercase, trim)
-        const normalizedTitle = article.title.toLowerCase().trim();
-        if (seen.has(normalizedTitle)) {
+        if (seen.has(article.id)) {
             return false;
         }
-        seen.add(normalizedTitle);
+        seen.add(article.id);
         return true;
     });
 };
@@ -88,13 +78,21 @@ export const fetchEggplantNews = async (
         }
 
         // Need to fetch from API
-        console.log(`Fetching eggplant news in ${language}, page ${page}...`);
+        console.log(`Fetching news in ${language}, page ${page}...`);
 
         const searchTerms = EGGPLANT_TERMS[language];
-        const langCode = NEWS_LANG_CODES[language];
 
-        // Build URL with pagination
-        let url = `${NEWSDATA_API_URL}?apikey=${NEWSDATA_API_KEY}&q=${encodeURIComponent(searchTerms)}&language=${langCode}`;
+        // Build URL with user's configured parameters:
+        // - country: in,pk,bd (India, Pakistan, Bangladesh)
+        // - language: based on selected language
+        // - category: food,health,lifestyle
+        // - image=1 to ensure images are included
+        let url = `${NEWSDATA_API_URL}?apikey=${NEWSDATA_API_KEY}` +
+            `&q=${encodeURIComponent(searchTerms)}` +
+            `&country=in,pk,bd` +
+            `&language=${language}` +
+            `&category=food,health,lifestyle` +
+            `&image=1`;
 
         // If loading more and we have a nextPage token, use it
         if (page > 1 && langCache.nextPage) {
@@ -132,10 +130,10 @@ export const fetchEggplantNews = async (
         // Update cache
         if (page === 1) {
             // Fresh fetch - replace cache
-            langCache.articles = deduplicateArticles(newArticles);
+            langCache.articles = deduplicateById(newArticles);
         } else {
             // Append to existing cache and deduplicate
-            langCache.articles = deduplicateArticles([...langCache.articles, ...newArticles]);
+            langCache.articles = deduplicateById([...langCache.articles, ...newArticles]);
         }
 
         langCache.nextPage = data.nextPage || null;
