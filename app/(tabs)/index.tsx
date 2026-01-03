@@ -29,13 +29,11 @@ export default function HomeScreen() {
     const [result, setResult] = useState<any>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [animationKey, setAnimationKey] = useState(0);
-    const [activeTab, setActiveTab] = useState<'overview' | 'symptoms' | 'treatment'>('overview');
 
     const [userName, setUserName] = useState<string | null>(null);
     const [userPhoto, setUserPhoto] = useState<string | null>(null);
 
     useEffect(() => {
-        // Use standard navigation listener to ensure updates when screen focuses
         const unsubscribe = navigation.addListener('focus', () => {
             setAnimationKey(prev => prev + 1);
             loadUserProfile();
@@ -64,7 +62,6 @@ export default function HomeScreen() {
         if (!result.canceled) {
             setSelectedImage(result.assets[0].uri);
             setResult(null);
-            setActiveTab('overview');
         }
     };
 
@@ -77,7 +74,6 @@ export default function HomeScreen() {
         if (!result.canceled) {
             setSelectedImage(result.assets[0].uri);
             setResult(null);
-            setActiveTab('overview');
         }
     };
 
@@ -135,7 +131,6 @@ export default function HomeScreen() {
     const resetScan = () => {
         setSelectedImage(null);
         setResult(null);
-        setActiveTab('overview');
     };
 
     const getDiseaseInfo = (className: string): DiseaseData | null => {
@@ -238,7 +233,7 @@ export default function HomeScreen() {
                                                 <Text className="text-muted-foreground font-medium">Analyzing plant data...</Text>
                                             </View>
                                         ) : (
-                                            /* Actual Result Content */
+                                            /* STABLE CONTINOUS VERTICAL LAYOUT (No Tabs) */
                                             <View>
                                                 {/* Header Badges */}
                                                 <View className="flex-row items-center justify-between mb-2">
@@ -265,86 +260,57 @@ export default function HomeScreen() {
                                                     {result.class.replace(/([A-Z])/g, ' $1').trim()}
                                                 </Text>
 
-                                                {/* TABS */}
-                                                <View className="flex-row bg-secondary/50 p-1 rounded-xl mb-6">
-                                                    <TouchableOpacity
-                                                        onPress={() => setActiveTab('overview')}
-                                                        className={cn("flex-1 py-2 items-center rounded-lg transition-all", activeTab === 'overview' && "bg-background shadow-sm")}
-                                                    >
-                                                        <Text className={cn("font-bold text-xs", activeTab === 'overview' ? "text-foreground" : "text-muted-foreground")}>Overview</Text>
-                                                    </TouchableOpacity>
-
-                                                    {result.class.toLowerCase() !== 'healthy' && (
-                                                        <>
-                                                            <TouchableOpacity
-                                                                onPress={() => setActiveTab('symptoms')}
-                                                                className={cn("flex-1 py-2 items-center rounded-lg transition-all", activeTab === 'symptoms' && "bg-background shadow-sm")}
-                                                            >
-                                                                <Text className={cn("font-bold text-xs", activeTab === 'symptoms' ? "text-foreground" : "text-muted-foreground")}>Symptoms</Text>
-                                                            </TouchableOpacity>
-                                                            <TouchableOpacity
-                                                                onPress={() => setActiveTab('treatment')}
-                                                                className={cn("flex-1 py-2 items-center rounded-lg transition-all", activeTab === 'treatment' && "bg-background shadow-sm")}
-                                                            >
-                                                                <Text className={cn("font-bold text-xs", activeTab === 'treatment' ? "text-foreground" : "text-muted-foreground")}>Cure</Text>
-                                                            </TouchableOpacity>
-                                                        </>
-                                                    )}
+                                                {/* CONTENT 1: OVERVIEW */}
+                                                <View className="mb-6 bg-secondary/20 p-4 rounded-2xl border border-border/50">
+                                                    <View className="flex-row gap-3 mb-2">
+                                                        <Sprout size={18} color={theme.colors.primary} />
+                                                        <Text className="font-bold text-foreground">About this condition</Text>
+                                                    </View>
+                                                    <Text className="text-muted-foreground leading-6 text-sm">
+                                                        {getDiseaseInfo(result.class)?.description || "No description available."}
+                                                    </Text>
                                                 </View>
 
-                                                {/* CONTENT AREA - Using stable Views instead of Animated.View to prevent crashes */}
-                                                <View className="min-h-[120px]">
-                                                    {activeTab === 'overview' && (
-                                                        <View>
-                                                            <View className="flex-row gap-3 mb-2">
-                                                                <Sprout size={18} color={theme.colors.primary} />
-                                                                <Text className="font-bold">About this condition</Text>
-                                                            </View>
-                                                            <Text className="text-muted-foreground leading-6 text-sm">
-                                                                {getDiseaseInfo(result.class)?.description || "No description available."}
-                                                            </Text>
+                                                {/* CONTENT 2: SYMPTOMS (If not healthy) */}
+                                                {result.class.toLowerCase() !== 'healthy' && (
+                                                    <View className="mb-6 bg-orange-50 dark:bg-orange-900/10 p-4 rounded-2xl border border-orange-100 dark:border-orange-900/20">
+                                                        <View className="flex-row gap-3 mb-2">
+                                                            <Stethoscope size={18} color="#f97316" />
+                                                            <Text className="font-bold text-foreground">Common Symptoms</Text>
                                                         </View>
-                                                    )}
+                                                        <View className="gap-2.5">
+                                                            {getDiseaseInfo(result.class)?.symptoms.map((s, i) => (
+                                                                <View key={i} className="flex-row gap-2.5">
+                                                                    <View className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5" />
+                                                                    <Text className="text-muted-foreground text-sm flex-1">{s}</Text>
+                                                                </View>
+                                                            ))}
+                                                        </View>
+                                                    </View>
+                                                )}
 
-                                                    {activeTab === 'symptoms' && (
-                                                        <View>
-                                                            <View className="flex-row gap-3 mb-2">
-                                                                <Stethoscope size={18} color="#f97316" />
-                                                                <Text className="font-bold">Common Symptoms</Text>
-                                                            </View>
-                                                            <View className="gap-2">
-                                                                {getDiseaseInfo(result.class)?.symptoms.map((s, i) => (
-                                                                    <View key={i} className="flex-row gap-2">
-                                                                        <View className="w-1.5 h-1.5 rounded-full bg-orange-400 mt-1.5" />
-                                                                        <Text className="text-muted-foreground text-sm flex-1">{s}</Text>
-                                                                    </View>
-                                                                ))}
-                                                            </View>
+                                                {/* CONTENT 3: TREATMENT (If not healthy) */}
+                                                {result.class.toLowerCase() !== 'healthy' && (
+                                                    <View className="mb-6 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/20">
+                                                        <View className="flex-row gap-3 mb-2">
+                                                            <Pill size={18} color="#3b82f6" />
+                                                            <Text className="font-bold text-foreground">Recommended Treatment</Text>
                                                         </View>
-                                                    )}
-
-                                                    {activeTab === 'treatment' && (
-                                                        <View>
-                                                            <View className="flex-row gap-3 mb-2">
-                                                                <Pill size={18} color="#3b82f6" />
-                                                                <Text className="font-bold">Recommended Treatment</Text>
-                                                            </View>
-                                                            <View className="gap-2">
-                                                                {getDiseaseInfo(result.class)?.control.map((s, i) => (
-                                                                    <View key={i} className="flex-row gap-2">
-                                                                        <View className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5" />
-                                                                        <Text className="text-muted-foreground text-sm flex-1">{s}</Text>
-                                                                    </View>
-                                                                ))}
-                                                            </View>
+                                                        <View className="gap-2.5">
+                                                            {getDiseaseInfo(result.class)?.control.map((s, i) => (
+                                                                <View key={i} className="flex-row gap-2.5">
+                                                                    <View className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5" />
+                                                                    <Text className="text-muted-foreground text-sm flex-1">{s}</Text>
+                                                                </View>
+                                                            ))}
                                                         </View>
-                                                    )}
-                                                </View>
+                                                    </View>
+                                                )}
 
                                                 {getDiseaseInfo(result.class)?.link && (
                                                     <TouchableOpacity
                                                         onPress={() => { const link = getDiseaseInfo(result.class)?.link; if (link) Linking.openURL(link); }}
-                                                        className="flex-row items-center justify-center gap-2 mt-6 py-3 border-t border-border/50"
+                                                        className="flex-row items-center justify-center gap-2 mt-2 py-3 border-t border-border/50"
                                                     >
                                                         <Text className="font-semibold text-primary">Read Full Article</Text>
                                                         <ChevronRight size={16} color={theme.colors.primary} />
