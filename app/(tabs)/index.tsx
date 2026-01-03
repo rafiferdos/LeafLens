@@ -146,6 +146,59 @@ export default function HomeScreen() {
                         </TouchableOpacity>
                     </View>
 
+                    {/* Model Status Indicator */}
+                    {(modelStatus.isDownloading || modelStatus.isInitializing) && (
+                        <Animated.View
+                            entering={FadeInDown.duration(300)}
+                            className="mx-6 mb-4 bg-primary/10 border border-primary/20 rounded-2xl p-4"
+                        >
+                            <View className="flex-row items-center gap-3">
+                                {modelStatus.isDownloading ? (
+                                    <Download size={20} color={theme.colors.primary} />
+                                ) : (
+                                    <Cpu size={20} color={theme.colors.primary} />
+                                )}
+                                <View className="flex-1">
+                                    <Text className="font-medium text-foreground">
+                                        {modelStatus.isDownloading ? 'Downloading AI Model' : 'Initializing AI...'}
+                                    </Text>
+                                    {modelStatus.isDownloading && (
+                                        <View className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                                            <View
+                                                className="h-full bg-primary rounded-full"
+                                                style={{ width: `${modelStatus.downloadProgress * 100}%` }}
+                                            />
+                                        </View>
+                                    )}
+                                    <Text className="text-muted-foreground text-xs mt-1">
+                                        {modelStatus.isDownloading
+                                            ? `${Math.round(modelStatus.downloadProgress * 100)}% complete (one-time download)`
+                                            : 'Loading AI model...'
+                                        }
+                                    </Text>
+                                </View>
+                            </View>
+                        </Animated.View>
+                    )}
+
+                    {modelStatus.error && (
+                        <Animated.View
+                            entering={FadeInDown.duration(300)}
+                            className="mx-6 mb-4 bg-destructive/10 border border-destructive/20 rounded-2xl p-4"
+                        >
+                            <View className="flex-row items-center gap-3">
+                                <AlertCircle size={20} color="#ef4444" />
+                                <View className="flex-1">
+                                    <Text className="font-medium text-destructive">Model Error</Text>
+                                    <Text className="text-muted-foreground text-xs mt-1">{modelStatus.error}</Text>
+                                </View>
+                                <TouchableOpacity onPress={modelStatus.retry} className="bg-destructive/20 px-3 py-1 rounded-lg">
+                                    <Text className="text-destructive text-sm font-medium">Retry</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </Animated.View>
+                    )}
+
                     {/* 2. Main Scanner Card / Result View */}
                     <View className="mx-6 bg-secondary/30 rounded-[32px] p-1 border border-border/50 shadow-sm mb-8 overflow-hidden">
 
