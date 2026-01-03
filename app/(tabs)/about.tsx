@@ -3,9 +3,10 @@ import { View, Image, ScrollView, Linking, TouchableOpacity, Switch } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Text } from '@/components/ui/text';
-import { Leaf, Heart, Moon, Sun, Monitor, Palette } from 'lucide-react-native';
+import { Leaf, Heart, Moon, Sun, Monitor, Palette, Globe, Check } from 'lucide-react-native';
 import { NAV_THEME } from '@/lib/theme';
 import { useColorScheme } from 'nativewind';
+import { useLanguage } from '@/lib/language';
 import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
 
 const RafiImage = require('../../assets/images/rafi.jpg');
@@ -13,6 +14,7 @@ const MimImage = require('../../assets/images/mim.jpg');
 
 export default function AboutScreen() {
     const { colorScheme, setColorScheme } = useColorScheme();
+    const { language, setLanguage, t, languageOptions } = useLanguage();
     const [animationKey, setAnimationKey] = useState(0);
 
     useFocusEffect(
@@ -44,6 +46,42 @@ export default function AboutScreen() {
                     <Text className="text-muted-foreground text-center text-lg max-w-[280px]">
                         Nurturing nature with the power of vision.
                     </Text>
+                </Animated.View>
+
+                {/* Language Section */}
+                <Animated.View
+                    entering={FadeInUp.delay(50).duration(800).springify()}
+                    className="mb-8"
+                >
+                    <View className="flex-row items-center gap-2 mb-4">
+                        <Globe size={20} color={theme.colors.text} />
+                        <Text style={{ fontFamily: 'Kablammo_400Regular' }} className="text-xl font-bold text-foreground">{t('language')}</Text>
+                    </View>
+
+                    <View className="bg-card border border-border rounded-3xl p-2 shadow-sm">
+                        <View className="flex-row flex-wrap">
+                            {languageOptions.map((lang) => (
+                                <TouchableOpacity
+                                    key={lang.code}
+                                    onPress={() => setLanguage(lang.code)}
+                                    className={`flex-1 min-w-[45%] p-3 rounded-2xl items-center justify-center m-1 ${language === lang.code
+                                            ? 'bg-primary/10 border border-primary/30'
+                                            : 'bg-secondary/30'
+                                        }`}
+                                >
+                                    <Text className={`font-bold text-sm ${language === lang.code ? 'text-primary' : 'text-foreground'}`}>
+                                        {lang.nativeName}
+                                    </Text>
+                                    <Text className="text-xs text-muted-foreground">{lang.name}</Text>
+                                    {language === lang.code && (
+                                        <View className="absolute top-2 right-2">
+                                            <Check size={14} color={theme.colors.primary} />
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
                 </Animated.View>
 
                 {/* Appearance Section */}
